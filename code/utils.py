@@ -101,3 +101,11 @@ def create_folders(config, env_name, mem_name):
     path = f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}/{num+1}'
 
     return path
+
+def compute_q_val(model, state, action):
+    output = model(state)
+    qs = output[list(range(output.shape[0])),action]
+    return qs
+    
+def compute_target(model, reward, next_state, done, discount_factor):
+    return reward + discount_factor*(model(next_state).max(dim=1)).values * (1-done).float()
