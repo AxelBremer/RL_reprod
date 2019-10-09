@@ -10,6 +10,7 @@ from torch import optim
 from tqdm import tqdm as _tqdm
 
 import gym
+import gym_gridworlds
 
 import random
 import time
@@ -77,12 +78,21 @@ class ExperienceReplay:
 def get_epsilon(it):
     return max(1 - it*(0.95/1000),0.05)
 
-def select_action(model, state, epsilon, device):
+def select_action(model, state, epsilon, device, input_dim):
     if random.random() > epsilon:
         with torch.no_grad():
-            return model(torch.tensor([state]).float().to(device)).argmax(dim=1).item()
+            state_tensor = torch.tensor([state])
+            if len(state_tensor.size()) > 1:
+                state_tensor = state_tensor.reshape(-1)
+            # print("shape", state_tensor)
+
+            model1 = model(state_tensor.float().to(device)).reshape(1, -1)
+            # print(model1.shape)
+            argmax = model1.argmax(dim=1)
+            # print(argmax.shape)
+            return argmax.item()
     else:
-        return random.sample([0,1],1)[0]
+        return random.sample(np.arange(input_dim).tolist(), 1)[0]
 
 def get_env(arg):
     if arg == 'M':
@@ -91,12 +101,16 @@ def get_env(arg):
     if arg == 'C':
         env = gym.envs.make("CartPole-v1")
         name = 'cartpole'
-    if arg == 'B':
-        env = gym.envs.make("BipedalWalker-v2")
-        name = 'bipedial'
+    # if arg == 'B':
+    #     env = gym.envs.make("BipedalWalker-v2")
+    #     name = 'bipedial'
     if arg == 'A':
         env = gym.envs.make("Acrobot-v1")
         name = 'acrobot'
+    if arg == 'G':
+        env = gym.make('Cliff-v0')
+        name = 'cliff'
+
     return env, env.observation_space, env.action_space, name
 
 

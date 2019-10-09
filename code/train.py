@@ -34,14 +34,14 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
 
     # random transition batch is taken from experience replay memory
     transitions = memory.sample(batch_size)
-    
+
     # transition is a list of 4-tuples, instead we want 4 vectors (as torch.Tensor's)
     state, action, reward, next_state, done = zip(*transitions)
-    
+
     # convert to PyTorch and define types
-    state = torch.tensor(state, dtype=torch.float).to(device)
+    state = torch.tensor(state, dtype=torch.float).to(device).squeeze()
     action = torch.tensor(action, dtype=torch.int64).to(device)  # Need 64 bit to use them as index
-    next_state = torch.tensor(next_state, dtype=torch.float).to(device)
+    next_state = torch.tensor(next_state, dtype=torch.float).to(device).squeeze()
     reward = torch.tensor(reward, dtype=torch.float).to(device)
     done = torch.tensor(done, dtype=torch.uint8).to(device)  # Boolean
     
@@ -91,6 +91,9 @@ def main(config):
         input_dim = input_space.shape[0]
     elif isinstance(input_space, Discrete):
         input_dim = input_space.n
+    else: #len(input_space) > 1 and isinstance(input_space[0], Discrete):
+        input_dim = np.prod([discrete.n for discrete in input_space.spaces])
+        input_shape = np.array([discrete.n for discrete in input_space.spaces])
 
     if isinstance(output_space, Box):
         output_cont = True
@@ -115,6 +118,13 @@ def main(config):
     episode_rewards = []
     for i in _tqdm(range(config.num_episodes)):
         st = env.reset()
+
+        if isinstance(st, tuple):
+            state = np.zeros(shape=input_shape)
+            state[st] = 1
+            st = state.reshape(-1, 1)
+
+
         if config.render: env.render()
         
         ct = 0
@@ -126,9 +136,15 @@ def main(config):
             global_steps += 1
             
             eps = get_epsilon(global_steps)
-            a = select_action(model, st, eps, device)
+            a = select_action(model, st, eps, device, output_dim)
+
             st1, r, done, _ = env.step(a)
-            
+
+            if isinstance(st1, tuple):
+                state = np.zeros(shape=input_shape)
+                state[st1] = 1
+                st1 = state.reshape(-1, 1)
+
             if config.render:
                 env.render()
                 time.sleep(0.01)
@@ -145,6 +161,10 @@ def main(config):
                 loss += train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
 
             st = st1
+
+            # The Gridworld environment doesn't break automatically...
+            if config.environment == 'G' and ct == 200:
+                break
 
         # If we are doing HER, unloop the HER memory and add it to the memory,
         # With a imagined goal incase of failure...
