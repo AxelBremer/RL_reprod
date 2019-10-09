@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import torch
 
 # implementation from https://github.com/rlcode/per/blob/master/SumTree.py
 class SumTree():
@@ -77,7 +78,7 @@ class PrioritizedER():
 
     def _get_priority(self, error):
         # nog door sommatie delen?
-        return (np.abs(error) + self.e) ** self.alpha
+        return (torch.abs(error) + self.e) ** self.alpha
 
     def push(self, transition, error):
         # add the td error to the memory sample

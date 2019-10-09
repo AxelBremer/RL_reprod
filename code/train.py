@@ -75,14 +75,14 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
 
 
     if config.replay_type == 'P':
-        errors = torch.abs(q_val - target).data.numpy()
+        errors = torch.abs(q_val - target).data.cpu().numpy()
         # update priority
         for i in range(batch_size):
             idx = idxs[i]
             memory.memory.update(idx, errors[i])
 
         # waarom mean?
-        loss = (torch.FloatTensor(is_weights) * F.smooth_l1_loss(q_val, target)).mean()
+        loss = (torch.FloatTensor(is_weights).to(device) * F.smooth_l1_loss(q_val, target)).mean()
     else:
         # loss is measured from error between current and newly expected Q values
         loss = F.smooth_l1_loss(q_val, target)
