@@ -10,10 +10,12 @@ from torch import optim
 from tqdm import tqdm as _tqdm
 
 import gym
+import gym_gridworlds
 
 import random
 import time
 from collections import defaultdict
+from collections import deque
 
 from prio_er import PrioritizedER
 
@@ -29,8 +31,34 @@ class QNetwork(nn.Module):
         out = self.l2(relu_output)
         return out
 
-class ExperienceReplay:
 
+class HindsightExperienceReplay:
+    def __init__(self):
+        self.buffer = deque()
+
+    def reset(self):
+        self.buffer = deque()
+
+    def keep(self,item):
+        self.buffer.append(item)
+
+    def backward(self):
+        num = len(self.buffer)
+
+        # goal = self.buffer[-1][-2][1,:,:]
+        last_transition = self.buffer[-1]
+        last_reward = last_transition[2]
+
+        # Imagine the last goal to be a goal...
+        if last_reward != 0:
+            last_transition = list(last_transition)
+            last_transition[2] = 0
+            self.buffer[-1] = tuple(last_transition)
+
+        return self.buffer
+
+
+class ExperienceReplay:
     def __init__(self, capacity):
         self.capacity = capacity
         self.memory = []
@@ -47,15 +75,26 @@ class ExperienceReplay:
     def __len__(self):
         return len(self.memory)
 
+
+
 def get_epsilon(it):
     return max(1 - it*(0.95/1000),0.05)
 
-def select_action(model, state, epsilon, device):
+def select_action(model, state, epsilon, device, input_dim):
     if random.random() > epsilon:
         with torch.no_grad():
-            return model(torch.tensor([state]).float().to(device)).argmax(dim=1).item()
+            state_tensor = torch.tensor([state])
+            if len(state_tensor.size()) > 1:
+                state_tensor = state_tensor.reshape(-1)
+            # print("shape", state_tensor)
+
+            model1 = model(state_tensor.float().to(device)).reshape(1, -1)
+            # print(model1.shape)
+            argmax = model1.argmax(dim=1)
+            # print(argmax.shape)
+            return argmax.item()
     else:
-        return random.sample([0,1],1)[0]
+        return random.sample(np.arange(input_dim).tolist(), 1)[0]
 
 def get_env(arg):
     if arg == 'M':
@@ -64,19 +103,26 @@ def get_env(arg):
     if arg == 'C':
         env = gym.envs.make("CartPole-v1")
         name = 'cartpole'
-    if arg == 'B':
-        env = gym.envs.make("BipedalWalker-v2")
-        name = 'bipedial'
+    # if arg == 'B':
+    #     env = gym.envs.make("BipedalWalker-v2")
+    #     name = 'bipedial'
     if arg == 'A':
         env = gym.envs.make("Acrobot-v1")
         name = 'acrobot'
+    if arg == 'G':
+        env = gym.make('Cliff-v0')
+        name = 'cliff'
+
     return env, env.observation_space, env.action_space, name
+
 
 def get_memory(arg, capacity):
     if arg == 'S':
         return ExperienceReplay(capacity), 'uniform_replay'
     elif arg == 'P':
         return PrioritizedER(capacity), 'prioritized_replay'
+    elif arg == 'H':
+        return ExperienceReplay(capacity), 'uniform_hindsight_replay'
 
 def create_folders(config, env_name, mem_name):
     # Create runs folder if it doesn't yet exist
