@@ -14,6 +14,7 @@ import gym
 import random
 import time
 from collections import defaultdict
+from collections import deque
 
 class QNetwork(nn.Module):
     
@@ -27,8 +28,34 @@ class QNetwork(nn.Module):
         out = self.l2(relu_output)
         return out
 
-class ExperienceReplay:
 
+class HindsightExperienceReplay:
+    def __init__(self):
+        self.buffer = deque()
+
+    def reset(self):
+        self.buffer = deque()
+
+    def keep(self,item):
+        self.buffer.append(item)
+
+    def backward(self):
+        num = len(self.buffer)
+
+        # goal = self.buffer[-1][-2][1,:,:]
+        last_transition = self.buffer[-1]
+        last_reward = last_transition[2]
+
+        # Imagine the last goal to be a goal...
+        if last_reward != 0:
+            last_transition = list(last_transition)
+            last_transition[2] = 0
+            self.buffer[-1] = tuple(last_transition)
+
+        return self.buffer
+
+
+class ExperienceReplay:
     def __init__(self, capacity):
         self.capacity = capacity
         self.memory = []
@@ -44,6 +71,8 @@ class ExperienceReplay:
 
     def __len__(self):
         return len(self.memory)
+
+
 
 def get_epsilon(it):
     return max(1 - it*(0.95/1000),0.05)
@@ -70,9 +99,12 @@ def get_env(arg):
         name = 'acrobot'
     return env, env.observation_space, env.action_space, name
 
+
 def get_memory(arg, capacity):
     if arg == 'S':
         return ExperienceReplay(capacity), 'uniform_replay'
+    if arg == 'H':
+        return ExperienceReplay(capacity), 'uniform_hindsight_replay'
 
 def create_folders(config, env_name, mem_name):
     # Create runs folder if it doesn't yet exist
