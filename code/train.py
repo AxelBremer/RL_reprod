@@ -26,13 +26,35 @@ import argparse
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+def push_transition_and_error(model, memory, transition):
+    
+    s, a, r, n_s, done = transition
+    
+    # convert to PyTorch datatypes
+    s = torch.tensor(s, dtype=torch.float).to(device)
+    a = torch.tensor(a, dtype=torch.int64).to(device)
+    r = torch.tensor(r, dtype=torch.float).to(device)
+    n_s = torch.tensor(n_s, dtype=torch.float).to(device)
+    done = torch.tensor(done, dtype=torch.uint8).to(device)
+
+    with torch.no_grad():
+        old_target = model(s)[a]
+        target = r + config.discount_factor*(model(n_s).max(dim=-1).values)
+        target = target * (1-done).float()
+
+    error = abs(target - old_target)
+    memory.push(transition, error)
+
 def train_step(model, memory, optimizer, batch_size, discount_factor):    
     # don't learn without some decent experience
     if len(memory) < batch_size:
         return None
 
     # random transition batch is taken from experience replay memory
-    transitions = memory.sample(batch_size)
+    if config.replay_type == 'P':
+        transitions, idxs, is_weights = memory.sample(batch_size)
+    else:
+        transitions = memory.sample(batch_size)
     
     # transition is a list of 4-tuples, instead we want 4 vectors (as torch.Tensor's)
     state, action, reward, next_state, done = zip(*transitions)
@@ -49,16 +71,28 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
     
     with torch.no_grad():  # Don't compute gradient info for the target (semi-gradient)
         target = compute_target(model, reward, next_state, done, discount_factor)
-    
-    # loss is measured from error between current and newly expected Q values
-    loss = F.smooth_l1_loss(q_val, target)
+
+
+    if config.replay_type == 'P':
+        errors = torch.abs(q_val - target).data.numpy()
+        # update priority
+        for i in range(batch_size):
+            idx = idxs[i]
+            memory.memory.update(idx, errors[i])
+
+        # waarom mean?
+        loss = (torch.FloatTensor(is_weights) * F.smooth_l1_loss(q_val, target)).mean()
+    else:
+        # loss is measured from error between current and newly expected Q values
+        loss = F.smooth_l1_loss(q_val, target)
+
 
     # backpropagation of loss to Neural Network (PyTorch magic)
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
     
-    return loss.item()  # Returns a Python scalar, and releases history (similar to .detach())
+    return loss.item(), q_val, target  # Returns a Python scalar, and releases history (similar to .detach())
 
 def main(config):
     print(config.__dict__)
@@ -125,13 +159,18 @@ def main(config):
                 env.render()
                 time.sleep(0.01)
             
-            memory.push((st, a, r, st1, done))
+            transition = (st, a, r, st1, done)
+            if mem_name == 'prioritized_replay':
+                push_transition_and_error(model, memory, transition)
+            else:
+                memory.push(transition)
             
             if len(memory) > config.batch_size:
                 mem = True
             
             if mem:
-                loss += train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
+                train_loss, q_val, target = train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
+                loss += train_loss
                 
             st = st1
         episode_durations.append(ct)
