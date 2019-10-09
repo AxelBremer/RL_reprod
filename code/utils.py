@@ -59,6 +59,9 @@ def get_env(arg):
     if arg == 'M':
         env = gym.envs.make("MountainCar-v0")
         name = 'mountain_car'
+    if arg == 'C':
+        env = gym.envs.make("CartPole-v1")
+        name = 'cartpole'
     if arg == 'B':
         env = gym.envs.make("BipedalWalker-v2")
         name = 'bipedial'
@@ -88,7 +91,12 @@ def create_folders(config, env_name, mem_name):
     if not os.path.exists(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}'):
         os.makedirs(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}')
 
-    num = len(os.listdir(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}'))
+    folders = os.listdir(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}')
+
+    if len(folders) == 0:
+        num = 0
+    else:
+        num = int(folders[-1])
 
     path = f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}/{num+1}'
 
