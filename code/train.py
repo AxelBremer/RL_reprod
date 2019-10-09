@@ -79,7 +79,7 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
         # update priority
         for i in range(batch_size):
             idx = idxs[i]
-            memory.memory.update(idx, errors[i])
+            memory.update(idx, errors[i])
 
         # waarom mean?
         loss = (torch.FloatTensor(is_weights).to(device) * F.smooth_l1_loss(q_val, target)).mean()
@@ -197,7 +197,7 @@ def main(config):
             
             if mem:
                 train_loss, q_val, target = train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
-                loss += train_loss
+                loss = train_loss
                 
             st = st1
 
