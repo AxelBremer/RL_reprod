@@ -3,8 +3,8 @@ import argparse
 from types import SimpleNamespace
 
 num_of_runs = 5
-environments = ['WGW', 'MC']
-buffer_size = [500, 1000, 1500]
+environments = ['M', 'A', 'G']
+buffer_size = [1000, 10000, 100000]
 
 
 def create_config(run_config, env, bs, run_num):
