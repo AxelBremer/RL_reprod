@@ -69,22 +69,23 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
     return loss.item()  # Returns a Python scalar, and releases history (similar to .detach())
 
 def main(config):
-    # Create runs folder if it doesn't yet exist
-    if not os.path.exists('runs'):
-        os.makedirs('runs')
-    # Create folder for this run
-    if not os.path.exists(f'runs/{config.name}'):
-        os.makedirs(f'runs/{config.name}')
-
     print(config.__dict__)
 
-    # Save the configuration in txt file.
-    with open(f'runs/{config.name}/args.txt', 'w') as f:
-        json.dump(config.__dict__, f, indent=2)
+    env, input_space, output_space, env_name = get_env(config.environment)
 
-    env, input_space, output_space = get_env(config.environment)
+    memory, mem_name = get_memory(config.replay_type, config.replay_capacity)
 
     print('env spaces', input_space, output_space)
+
+    path = create_folders(config, env_name, mem_name)
+
+    # Create runs folder if it doesn't yet exist
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    # Save the configuration in txt file.
+    with open(path+'/args.txt', 'w') as f:
+        json.dump(config.__dict__, f, indent=2)
 
     if isinstance(input_space, Box):
         input_dim = input_space.shape[0]
@@ -105,8 +106,6 @@ def main(config):
     model.to(device)
 
     optimizer = optim.Adam(model.parameters(), config.learning_rate)
-
-    memory = get_memory(config.replay_type, config.replay_capacity)
     
     mem = False
     
@@ -149,7 +148,7 @@ def main(config):
         env.close()
 
         d = {'durations':episode_durations, 'losses':episode_losses, 'rewards':episode_rewards}
-        with open(f'runs/{config.name}/history.json', 'w') as f:
+        with open(path + '/history.json', 'w') as f:
             json.dump(d, f, indent=2)
     
     return episode_durations, episode_losses, episode_rewards
@@ -160,7 +159,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Model params
-    parser.add_argument('--name', type=str, required=True, help='name of run')
     parser.add_argument('--replay_type', type=str, default='S', help='Replay type: [S]tandard, [H]indsight, [P]rioritized')
     parser.add_argument('--replay_capacity', type=int, default=1000, help='Number of moves to save in replay memory')
     parser.add_argument('--hidden_dim', type=int, default=512, help='Number of hidden unit')

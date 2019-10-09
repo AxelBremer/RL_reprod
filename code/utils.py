@@ -58,14 +58,38 @@ def select_action(model, state, epsilon, device):
 def get_env(arg):
     if arg == 'M':
         env = gym.envs.make("MountainCar-v0")
+        name = 'mountain_car'
     if arg == 'B':
         env = gym.envs.make("BipedalWalker-v2")
+        name = 'bipedial'
     if arg == 'A':
         env = gym.envs.make("Acrobot-v1")
-    if arg == 'C':
-        env = gym.envs.make("CarRacing-v0")
-    return env, env.observation_space, env.action_space
+        name = 'acrobot'
+    return env, env.observation_space, env.action_space, name
 
 def get_memory(arg, capacity):
     if arg == 'S':
-        return ExperienceReplay(capacity)
+        return ExperienceReplay(capacity), 'uniform_replay'
+
+def create_folders(config, env_name, mem_name):
+    # Create runs folder if it doesn't yet exist
+    if not os.path.exists('runs'):
+        os.makedirs('runs')
+
+    # Create runs folder if it doesn't yet exist
+    if not os.path.exists(f'runs/{env_name}'):
+        os.makedirs(f'runs/{env_name}')
+
+    # Create runs folder if it doesn't yet exist
+    if not os.path.exists(f'runs/{env_name}/{mem_name}'):
+        os.makedirs(f'runs/{env_name}/{mem_name}')
+
+    # Create runs folder if it doesn't yet exist
+    if not os.path.exists(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}'):
+        os.makedirs(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}')
+
+    num = len(os.listdir(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}'))
+
+    path = f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}/{num+1}'
+
+    return path
