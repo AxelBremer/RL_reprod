@@ -27,14 +27,6 @@ import argparse
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def compute_q_val(model, state, action):
-    output = model(state)
-    qs = output[list(range(output.shape[0])),action]
-    return qs
-    
-def compute_target(model, reward, next_state, done, discount_factor):
-    return reward + discount_factor*(model(next_state).max(dim=1)).values * (1-done).float()
-
 def train_step(model, memory, optimizer, batch_size, discount_factor):    
     # don't learn without some decent experience
     if len(memory) < batch_size:
