@@ -11,6 +11,8 @@ import torch.nn.functional as F
 from torch import optim
 from tqdm import tqdm as _tqdm
 
+from gym.spaces import Box, Discrete
+
 import utils
 
 from utils import *
@@ -21,6 +23,8 @@ import time
 from collections import defaultdict
 
 import argparse
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def compute_q_val(model, state, action):
     output = model(state)
@@ -42,11 +46,11 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
     state, action, reward, next_state, done = zip(*transitions)
     
     # convert to PyTorch and define types
-    state = torch.tensor(state, dtype=torch.float)
-    action = torch.tensor(action, dtype=torch.int64)  # Need 64 bit to use them as index
-    next_state = torch.tensor(next_state, dtype=torch.float)
-    reward = torch.tensor(reward, dtype=torch.float)
-    done = torch.tensor(done, dtype=torch.uint8)  # Boolean
+    state = torch.tensor(state, dtype=torch.float).to(device)
+    action = torch.tensor(action, dtype=torch.int64).to(device)  # Need 64 bit to use them as index
+    next_state = torch.tensor(next_state, dtype=torch.float).to(device)
+    reward = torch.tensor(reward, dtype=torch.float).to(device)
+    done = torch.tensor(done, dtype=torch.uint8).to(device)  # Boolean
     
     # compute the q value
     q_val = compute_q_val(model, state, action)
@@ -78,11 +82,27 @@ def main(config):
     with open(f'runs/{config.name}/args.txt', 'w') as f:
         json.dump(config.__dict__, f, indent=2)
 
-    env, input_dim, output_dim = get_env(config.environment)
+    env, input_space, output_space = get_env(config.environment)
+
+    print('env spaces', input_space, output_space)
+
+    if isinstance(input_space, Box):
+        input_dim = input_space.shape[0]
+    elif isinstance(input_space, Discrete):
+        input_dim = input_space.n
+
+    if isinstance(output_space, Box):
+        output_cont = True
+        output_dim = output_space.shape[0]
+    elif isinstance(output_space, Discrete):
+        output_cont = False
+        output_dim = output_space.n
 
     print('env dimensions', input_dim, output_dim)
 
-    model = QNetwork(input_dim.shape[0], config.hidden_dim, output_dim.n)
+    model = QNetwork(input_dim, config.hidden_dim, output_dim)
+
+    model.to(device)
 
     optimizer = optim.Adam(model.parameters(), config.learning_rate)
 
@@ -93,6 +113,7 @@ def main(config):
     global_steps = 0  # Count the steps (do not reset at episode start, to compute epsilon)
     episode_durations = []  #
     episode_losses = []
+    episode_rewards = []
     for i in _tqdm(range(config.num_episodes)):
         st = env.reset()
         if config.render: env.render()
@@ -106,7 +127,7 @@ def main(config):
             global_steps += 1
             
             eps = get_epsilon(global_steps)
-            a = select_action(model, st, eps)
+            a = select_action(model, st, eps, device)
             st1, r, done, _ = env.step(a)
             
             if config.render: 
@@ -124,8 +145,14 @@ def main(config):
             st = st1
         episode_durations.append(ct)
         episode_losses.append(loss)
+        episode_rewards.append(r)
         env.close()
-    return episode_durations
+
+        d = {'durations':episode_durations, 'losses':episode_losses, 'rewards':episode_rewards}
+        with open(f'runs/{config.name}/history.json', 'w') as f:
+            json.dump(d, f, indent=2)
+    
+    return episode_durations, episode_losses, episode_rewards
 
 if __name__ == "__main__":
 
@@ -137,7 +164,7 @@ if __name__ == "__main__":
     parser.add_argument('--replay_type', type=str, default='S', help='Replay type: [S]tandard, [H]indsight, [P]rioritized')
     parser.add_argument('--replay_capacity', type=int, default=1000, help='Number of moves to save in replay memory')
     parser.add_argument('--hidden_dim', type=int, default=512, help='Number of hidden unit')
-    parser.add_argument('--environment', type=str, default='C', help='What environment to use: [C]artpole')
+    parser.add_argument('--environment', type=str, default='C', help='What environment to use: [M]ountainCar, [A]crobot, [B]ipedalWalker, [G]ridworld')
     parser.add_argument('--learning_rate', type=float, default=0.005, help='Learning rate for Adam')
     parser.add_argument('--num_episodes', type=int, default=100, help='Number of episodes to train on')
     parser.add_argument('--render', type=bool, default=False, help='Boolean to render environment or not')

@@ -48,20 +48,22 @@ class ExperienceReplay:
 def get_epsilon(it):
     return max(1 - it*(0.95/1000),0.05)
 
-def select_action(model, state, epsilon):
+def select_action(model, state, epsilon, device):
     if random.random() > epsilon:
         with torch.no_grad():
-            return model(torch.tensor([state]).float()).argmax(dim=1).item()
+            return model(torch.tensor([state]).float().to(device)).argmax(dim=1).item()
     else:
         return random.sample([0,1],1)[0]
 
 def get_env(arg):
-    if arg == 'C':
-        env = gym.envs.make("CartPole-v0")
+    if arg == 'M':
+        env = gym.envs.make("MountainCar-v0")
     if arg == 'B':
         env = gym.envs.make("BipedalWalker-v2")
     if arg == 'A':
         env = gym.envs.make("Acrobot-v1")
+    if arg == 'C':
+        env = gym.envs.make("CarRacing-v0")
     return env, env.observation_space, env.action_space
 
 def get_memory(arg, capacity):
