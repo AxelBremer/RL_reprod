@@ -24,6 +24,7 @@ from collections import defaultdict
 
 import argparse
 
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def compute_q_val(model, state, action):
@@ -74,6 +75,13 @@ def main(config):
     env, input_space, output_space, env_name = get_env(config.environment)
 
     memory, mem_name = get_memory(config.replay_type, config.replay_capacity)
+
+    # If we're doing hindsight ER, we do things a little bit different
+    HINDSIGHT_ER = False
+    if config.replay_type == 'H':
+        HINDSIGHT_ER = True
+        her = HindsightExperienceReplay()
+        her.reset()
 
     print('env spaces', input_space, output_space)
 
@@ -129,19 +137,33 @@ def main(config):
             a = select_action(model, st, eps, device)
             st1, r, done, _ = env.step(a)
             
-            if config.render: 
+            if config.render:
                 env.render()
                 time.sleep(0.01)
             
             memory.push((st, a, r, st1, done))
-            
+
+            if HINDSIGHT_ER:
+                her.keep((st, a, r, st1, done))
+
             if len(memory) > config.batch_size:
                 mem = True
             
             if mem:
                 loss += train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
-                
+
             st = st1
+
+        # If we are doing HER, unloop the HER memory and add it to the memory,
+        # With a imagined goal incase of failure...
+        if HINDSIGHT_ER:
+            for k in range(config.replay_k):
+                her_list = her.backward()
+                for item in her_list:
+                    memory.push(item)
+
+                break
+
         episode_durations.append(ct)
         episode_losses.append(loss)
         episode_rewards.append(r)
@@ -168,6 +190,7 @@ if __name__ == "__main__":
     parser.add_argument('--render', type=bool, default=False, help='Boolean to render environment or not')
     parser.add_argument('--discount_factor', type=float, default=0.99, help='Discount factor')
     parser.add_argument('--batch_size', type=int, default=128, help='Number of examples to process in a batch')
+    parser.add_argument('--replay_k', type=int, default=4, help='In the case of HER, the ratio of HER replays vs normal replays')
 
     config = parser.parse_args()
 
