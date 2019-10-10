@@ -27,7 +27,7 @@ import argparse
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def push_transition_and_error(model, memory, transition):
+def push_transition_and_error(model, memory, transition, discount_factor):
     
     s, a, r, n_s, done = transition
     
@@ -40,10 +40,10 @@ def push_transition_and_error(model, memory, transition):
 
     with torch.no_grad():
         old_target = model(s)[a]
-        target = r + config.discount_factor*(model(n_s).max(dim=-1).values)
+        target = r + discount_factor*(model(n_s).max(dim=-1).values)
         target = target * (1-done).float()
 
-    error = abs(target - old_target)
+    error = torch.abs(target - old_target)
     memory.push(transition, error)
 
 def train_step(model, memory, optimizer, batch_size, discount_factor, replay_type):    
@@ -110,7 +110,7 @@ def main(config):
         her.reset()
 
     if config.replay_type == 'P':
-        error = memory.tree.total()
+        error = torch.tensor(memory.tree.total().item())
 
     print('env spaces', input_space, output_space)
 
@@ -191,7 +191,7 @@ def main(config):
             
             transition = (st, a, r, st1, done)
             if mem_name == 'prioritized_replay' and mem:
-                push_transition_and_error(model, memory, transition)
+                push_transition_and_error(model, memory, transition, config.discount_factor)
             elif mem_name == 'prioritized_replay' and not mem:
                 memory.push(transition, error)
             else:

@@ -18,7 +18,7 @@ class PrioritizedER():
         self.tree = SumTree(capacity)
 
     def _get_priority(self, error):
-        return (np.abs(error) + self.e) ** self.alpha
+        return (abs(error) + self.e) ** self.alpha
 
     # and store in tree:
     def push(self, transition, error):
