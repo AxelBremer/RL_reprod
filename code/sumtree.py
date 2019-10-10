@@ -12,6 +12,7 @@ class SumTree():
         self.data = np.zeros(capacity, dtype=object)
         self.n_entries = 0
 
+    # update to the root node
     def _propagate(self, idx, change):
         parent = (idx - 1) // 2
 
@@ -20,6 +21,7 @@ class SumTree():
         if parent != 0:
             self._propagate(parent, change)
 
+    # find sample on leaf node
     def _retrieve(self, idx, s):
         left = 2 * idx + 1
         right = left + 1
