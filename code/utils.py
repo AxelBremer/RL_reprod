@@ -103,9 +103,9 @@ def get_env(arg):
     if arg == 'C':
         env = gym.envs.make("CartPole-v1")
         name = 'cartpole'
-    # if arg == 'B':
-    #     env = gym.envs.make("BipedalWalker-v2")
-    #     name = 'bipedial'
+    if arg == 'L':
+        env = gym.make("LunarLander-v2")
+        name = 'lunar_lander'
     if arg == 'A':
         env = gym.envs.make("Acrobot-v1")
         name = 'acrobot'

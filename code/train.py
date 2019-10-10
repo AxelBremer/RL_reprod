@@ -129,12 +129,7 @@ def main(config):
         input_dim = np.prod([discrete.n for discrete in input_space.spaces])
         input_shape = np.array([discrete.n for discrete in input_space.spaces])
 
-    if isinstance(output_space, Box):
-        output_cont = True
-        output_dim = output_space.shape[0]
-    elif isinstance(output_space, Discrete):
-        output_cont = False
-        output_dim = output_space.n
+    output_dim = output_space.n
 
     print('env dimensions', input_dim, output_dim)
 
@@ -163,6 +158,7 @@ def main(config):
         
         ct = 0
         loss = 0
+        reward = 0
         done = False
         
         while not done:
@@ -173,6 +169,8 @@ def main(config):
             a = select_action(model, st, eps, device, output_dim)
 
             st1, r, done, _ = env.step(a)
+
+            reward += r
 
             if isinstance(st1, tuple):
                 state = np.zeros(shape=input_shape)
@@ -217,12 +215,14 @@ def main(config):
 
         episode_durations.append(ct)
         episode_losses.append(loss)
-        episode_rewards.append(r)
+        episode_rewards.append(reward)
         env.close()
 
-        d = {'durations':episode_durations, 'losses':episode_losses, 'rewards':episode_rewards}
-        with open(path + '/history.json', 'w') as f:
-            json.dump(d, f, indent=2)
+
+
+    d = {'durations':episode_durations, 'losses':episode_losses, 'rewards':episode_rewards}
+    with open(path + '/history.json', 'w') as f:
+        json.dump(d, f, indent=2)
     
     return episode_durations, episode_losses, episode_rewards
 
@@ -235,8 +235,8 @@ if __name__ == "__main__":
     parser.add_argument('--replay_type', type=str, default='S', help='Replay type: [S]tandard, [H]indsight, [P]rioritized')
     parser.add_argument('--replay_capacity', type=int, default=1000, help='Number of moves to save in replay memory')
     parser.add_argument('--hidden_dim', type=int, default=512, help='Number of hidden unit')
-    parser.add_argument('--environment', type=str, default='C', help='What environment to use: [M]ountainCar, [A]crobot, [B]ipedalWalker, [G]ridworld')
-    parser.add_argument('--learning_rate', type=float, default=0.005, help='Learning rate for Adam')
+    parser.add_argument('--environment', type=str, default='C', help='What environment to use: [M]ountainCar, [A]crobot, [C]artpole, [G]ridworld')
+    parser.add_argument('--learning_rate', type=float, default=1e-3, help='Learning rate for Adam')
     parser.add_argument('--num_episodes', type=int, default=100, help='Number of episodes to train on')
     parser.add_argument('--render', type=bool, default=False, help='Boolean to render environment or not')
     parser.add_argument('--discount_factor', type=float, default=0.99, help='Discount factor')
