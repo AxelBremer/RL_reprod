@@ -100,7 +100,7 @@ def main(config):
 
     env, input_space, output_space, env_name = get_env(config.environment)
 
-    memory, mem_name = get_memory(config.replay_type, config.replay_capacity)
+    memory, mem_name = get_memory(config.replay_type, config.replay_capacity, config.num_episodes)
 
     # If we're doing hindsight ER, we do things a little bit different
     HINDSIGHT_ER = False
@@ -161,6 +161,8 @@ def main(config):
             state[st] = 1
             st = state.reshape(-1, 1)
 
+        if config.replay_type == 'P':
+            memory.anneal_hyperparams()
 
         if config.render: env.render()
         

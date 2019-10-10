@@ -9,12 +9,14 @@ class PrioritizedER():
 
     # to ensure we do operations on non-zero values
     e = 10e-3
-    beta_increment_per_sampling = 0.001 # TODO: kijken of dit beter kan
 
-    def __init__(self, capacity, alpha=0.6, beta=0.4):
+    def __init__(self, capacity, n_episodes, alpha=0.6, beta=0.4):
         self.alpha = alpha
         self.beta = beta
         self.capacity = capacity
+        self.alpha_increment_per_sampling = (1-alpha) / n_episodes
+        self.beta_increment_per_sampling = (1-beta) / n_episodes
+        # self.beta_increment_per_sampling = 0.001
         self.tree = SumTree(capacity)
 
     def _get_priority(self, error):
@@ -31,7 +33,9 @@ class PrioritizedER():
         segment = self.tree.total() / batch_size
         priorities = []
 
-        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
+        # clip the hyperparameters to 1
+        # self.alpha = np.min(1., self.alpha + self.alpha_increment_per_sampling)
+        # self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
 
         for i in range(batch_size):
             a = segment * i
@@ -55,3 +59,8 @@ class PrioritizedER():
 
     def __len__(self):
         return self.tree.n_entries
+
+    def anneal_hyperparams(self):
+        # clip the hyperparameters to 1, just in case
+        self.alpha = np.min([1., self.alpha + self.alpha_increment_per_sampling])
+        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
