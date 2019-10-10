@@ -93,7 +93,7 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
     loss.backward()
     optimizer.step()
     
-    return loss.item(), q_val, target  # Returns a Python scalar, and releases history (similar to .detach())
+    return loss.item()  # Returns a Python scalar, and releases history (similar to .detach())
 
 def main(config):
     print(config.__dict__)
@@ -108,6 +108,9 @@ def main(config):
         HINDSIGHT_ER = True
         her = HindsightExperienceReplay()
         her.reset()
+
+    if config.replay_type == 'P':
+        error = memory.tree.total()
 
     print('env spaces', input_space, output_space)
 
@@ -182,21 +185,23 @@ def main(config):
             if config.render:
                 env.render()
                 time.sleep(0.01)
+
+            if len(memory) > config.batch_size:
+                mem = True
             
             transition = (st, a, r, st1, done)
-            if mem_name == 'prioritized_replay':
+            if mem_name == 'prioritized_replay' and mem:
                 push_transition_and_error(model, memory, transition)
+            elif mem_name == 'prioritized_replay' and not mem:
+                memory.push(transition, error)
             else:
                 memory.push(transition)
 
             if HINDSIGHT_ER:
                 her.keep(transition)
-
-            if len(memory) > config.batch_size:
-                mem = True
             
             if mem:
-                train_loss, q_val, target = train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
+                train_loss = train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
                 loss = train_loss
                 
             st = st1
