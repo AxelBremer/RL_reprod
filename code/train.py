@@ -146,6 +146,8 @@ def main(config):
     episode_losses = []
     episode_rewards = []
     for i in _tqdm(range(config.num_episodes)):
+        if i%50 == 0:
+            config.render == True
         st = env.reset()
 
         if isinstance(st, tuple):
@@ -165,7 +167,7 @@ def main(config):
             ct += 1
             global_steps += 1
             
-            eps = get_epsilon(global_steps)
+            eps = get_epsilon(global_steps, config.num_until)
             a = select_action(model, st, eps, device, output_dim)
 
             st1, r, done, _ = env.step(a)
@@ -210,8 +212,9 @@ def main(config):
                 her_list = her.backward()
                 for item in her_list:
                     memory.push(item)
-
                 break
+
+        config.render = False
 
         episode_durations.append(ct)
         episode_losses.append(loss)
@@ -241,7 +244,8 @@ if __name__ == "__main__":
     parser.add_argument('--render', type=bool, default=False, help='Boolean to render environment or not')
     parser.add_argument('--discount_factor', type=float, default=0.99, help='Discount factor')
     parser.add_argument('--batch_size', type=int, default=128, help='Number of examples to process in a batch')
-    parser.add_argument('--replay_k', type=int, default=4, help='In the case of HER, the ratio of HER replays vs normal replays')
+    parser.add_argument('--replay_k', type=int, default=5, help='In the case of HER, the ratio of HER replays vs normal replays')
+    parser.add_argument('--num_until', type=int, default=1000, help='Number of steps for epsilon to be 0.05')
 
     config = parser.parse_args()
 

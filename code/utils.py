@@ -77,7 +77,7 @@ class ExperienceReplay:
 
 
 
-def get_epsilon(it):
+def get_epsilon(it, num_until):
     return max(1 - it*(0.95/1000),0.05)
 
 def select_action(model, state, epsilon, device, input_dim):
