@@ -46,13 +46,13 @@ def push_transition_and_error(model, memory, transition):
     error = abs(target - old_target)
     memory.push(transition, error)
 
-def train_step(model, memory, optimizer, batch_size, discount_factor):    
+def train_step(model, memory, optimizer, batch_size, discount_factor, replay_type):    
     # don't learn without some decent experience
     if len(memory) < batch_size:
         return None
 
     # random transition batch is taken from experience replay memory
-    if config.replay_type == 'P':
+    if replay_type == 'P':
         transitions, idxs, is_weights = memory.sample(batch_size)
     else:
         transitions = memory.sample(batch_size)
@@ -74,7 +74,7 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
         target = compute_target(model, reward, next_state, done, discount_factor)
 
 
-    if config.replay_type == 'P':
+    if replay_type == 'P':
         errors = torch.abs(q_val - target).data.cpu().numpy()
         # update priority
         for i in range(batch_size):
@@ -196,7 +196,7 @@ def main(config):
                 mem = True
             
             if mem:
-                train_loss, q_val, target = train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
+                train_loss, q_val, target = train_step(model, memory, optimizer, config.batch_size, config.discount_factor, config.replay_type)
                 loss = train_loss
                 
             st = st1

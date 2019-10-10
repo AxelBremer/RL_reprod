@@ -35,6 +35,8 @@ if __name__ == "__main__":
     parser.add_argument('--render', type=bool, default=False, help='Boolean to render environment or not')
     parser.add_argument('--discount_factor', type=float, default=0.99, help='Discount factor')
     parser.add_argument('--batch_size', type=int, default=128, help='Number of examples to process in a batch')
+    parser.add_argument('--replay_k', type=int, default=4, help='In the case of HER, the ratio of HER replays vs normal replays')
+
 
     run_config = parser.parse_args()
 
