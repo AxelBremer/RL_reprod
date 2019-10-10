@@ -116,13 +116,13 @@ def get_env(arg):
     return env, env.observation_space, env.action_space, name
 
 
-def get_memory(arg, capacity):
+def get_memory(arg, capacity, n_episodes):
     if arg == 'S':
         return ExperienceReplay(capacity), 'uniform_replay'
-    elif arg == 'P':
-        return PrioritizedER(capacity), 'prioritized_replay'
     elif arg == 'H':
         return ExperienceReplay(capacity), 'uniform_hindsight_replay'
+    elif arg == 'P':
+        return PrioritizedER(capacity, n_episodes), 'prioritized_replay'
 
 def create_folders(config, env_name, mem_name):
     # Create runs folder if it doesn't yet exist

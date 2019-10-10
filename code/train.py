@@ -27,7 +27,7 @@ import argparse
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def push_transition_and_error(model, memory, transition):
+def push_transition_and_error(model, memory, transition, discount_factor):
     
     s, a, r, n_s, done = transition
     
@@ -40,19 +40,19 @@ def push_transition_and_error(model, memory, transition):
 
     with torch.no_grad():
         old_target = model(s)[a]
-        target = r + config.discount_factor*(model(n_s).max(dim=-1).values)
+        target = r + discount_factor*(model(n_s).max(dim=-1).values)
         target = target * (1-done).float()
 
-    error = abs(target - old_target)
+    error = torch.abs(target - old_target)
     memory.push(transition, error)
 
-def train_step(model, memory, optimizer, batch_size, discount_factor):    
+def train_step(model, memory, optimizer, batch_size, discount_factor, replay_type):    
     # don't learn without some decent experience
     if len(memory) < batch_size:
         return None
 
     # random transition batch is taken from experience replay memory
-    if config.replay_type == 'P':
+    if replay_type == 'P':
         transitions, idxs, is_weights = memory.sample(batch_size)
     else:
         transitions = memory.sample(batch_size)
@@ -74,7 +74,7 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
         target = compute_target(model, reward, next_state, done, discount_factor)
 
 
-    if config.replay_type == 'P':
+    if replay_type == 'P':
         errors = torch.abs(q_val - target).data.cpu().numpy()
         # update priority
         for i in range(batch_size):
@@ -93,14 +93,14 @@ def train_step(model, memory, optimizer, batch_size, discount_factor):
     loss.backward()
     optimizer.step()
     
-    return loss.item(), q_val, target  # Returns a Python scalar, and releases history (similar to .detach())
+    return loss.item()  # Returns a Python scalar, and releases history (similar to .detach())
 
 def main(config):
     print(config.__dict__)
 
     env, input_space, output_space, env_name = get_env(config.environment)
 
-    memory, mem_name = get_memory(config.replay_type, config.replay_capacity)
+    memory, mem_name = get_memory(config.replay_type, config.replay_capacity, config.num_episodes)
 
     # If we're doing hindsight ER, we do things a little bit different
     HINDSIGHT_ER = False
@@ -108,6 +108,9 @@ def main(config):
         HINDSIGHT_ER = True
         her = HindsightExperienceReplay()
         her.reset()
+
+    if config.replay_type == 'P':
+        error = torch.tensor(memory.tree.total().item())
 
     print('env spaces', input_space, output_space)
 
@@ -155,6 +158,8 @@ def main(config):
             state[st] = 1
             st = state.reshape(-1, 1)
 
+        if config.replay_type == 'P':
+            memory.anneal_hyperparams()
 
         if config.render: env.render()
         
@@ -182,21 +187,23 @@ def main(config):
             if config.render:
                 env.render()
                 time.sleep(0.01)
+
+            if len(memory) > config.batch_size:
+                mem = True
             
             transition = (st, a, r, st1, done)
-            if mem_name == 'prioritized_replay':
-                push_transition_and_error(model, memory, transition)
+            if mem_name == 'prioritized_replay' and mem:
+                push_transition_and_error(model, memory, transition, config.discount_factor)
+            elif mem_name == 'prioritized_replay' and not mem:
+                memory.push(transition, error)
             else:
                 memory.push(transition)
 
             if HINDSIGHT_ER:
                 her.keep(transition)
-
-            if len(memory) > config.batch_size:
-                mem = True
             
             if mem:
-                train_loss, q_val, target = train_step(model, memory, optimizer, config.batch_size, config.discount_factor)
+                train_loss = train_step(model, memory, optimizer, config.batch_size, config.discount_factor, config.replay_type)
                 loss = train_loss
                 
             st = st1
