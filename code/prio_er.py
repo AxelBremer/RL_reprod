@@ -14,7 +14,7 @@ class PrioritizedER():
         self.alpha = alpha
         self.beta = beta
         self.capacity = capacity
-        self.alpha_increment_per_sampling = (1-alpha) / n_episodes
+        # self.alpha_increment_per_sampling = (1-alpha) / n_episodes
         self.beta_increment_per_sampling = (1-beta) / n_episodes
         # self.beta_increment_per_sampling = 0.001
         self.tree = SumTree(capacity)
@@ -62,5 +62,5 @@ class PrioritizedER():
 
     def anneal_hyperparams(self):
         # clip the hyperparameters to 1, just in case
-        self.alpha = np.min([1., self.alpha + self.alpha_increment_per_sampling])
+        # self.alpha = np.min([1., self.alpha + self.alpha_increment_per_sampling])
         self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
