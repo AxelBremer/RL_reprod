@@ -7,6 +7,7 @@ import torch
 
 class PrioritizedER():
 
+    # to ensure we do operations on non-zero values
     e = 10e-3
     beta_increment_per_sampling = 0.001 # TODO: kijken of dit beter kan
 
@@ -17,16 +18,12 @@ class PrioritizedER():
         self.tree = SumTree(capacity)
 
     def _get_priority(self, error):
-        # nog door sommatie delen?
         return (np.abs(error) + self.e) ** self.alpha
 
+    # and store in tree:
     def push(self, transition, error):
-        # add the td error to the memory sample
-        # transition = (transition, error)
-
-        # and store in tree:
-        p = self._get_priority(error)
-        self.tree.add(p, transition)
+        delta = self._get_priority(error)
+        self.tree.add(delta, transition)
 
     def sample(self, batch_size):
         batch = []
@@ -53,8 +50,8 @@ class PrioritizedER():
         return batch, idxs, is_weight
 
     def update(self, idx, error):
-        p = self._get_priority(error)
-        self.tree.update(idx, p)
+        delta = self._get_priority(error)
+        self.tree.update(idx, delta)
 
     def __len__(self):
         return self.tree.n_entries
