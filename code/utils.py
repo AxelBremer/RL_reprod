@@ -141,14 +141,18 @@ def create_folders(config, env_name, mem_name):
     if not os.path.exists(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}'):
         os.makedirs(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}')
 
-    folders = os.listdir(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}')
+        # Create runs folder if it doesn't yet exist
+    if not os.path.exists(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}/{config.name}'):
+        os.makedirs(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}/{config.name}')
+
+    folders = os.listdir(f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}/{config.name}')
 
     if len(folders) == 0:
         num = 0
     else:
         num = int(folders[-1])
 
-    path = f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}/{num+1}'
+    path = f'runs/{env_name}/{mem_name}/buffer_{config.replay_capacity}/{config.name}/{num+1}'
 
     return path
 
