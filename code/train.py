@@ -221,7 +221,7 @@ def main(config):
                     memory.push(item)
                 break
 
-        config.render = False
+        # config.render = False
 
         episode_durations.append(ct)
         episode_losses.append(loss)
