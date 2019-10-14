@@ -35,6 +35,6 @@ scores = pd.DataFrame(scores)
 for env in scores['env'].unique():
     part = scores[scores['env'] == env]
     fig, ax = plt.subplots(figsize=(15,10))
-    sns.barplot(ax=ax, data=part, x='parameters', y='cumulative_reward', hue='buffer_size')
+    sns.barplot(ax=ax, data=part, x='replay_type', y='cumulative_reward', hue='buffer_size')
     ax.set_title(env)
     plt.show()
