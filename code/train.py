@@ -253,7 +253,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=128, help='Number of examples to process in a batch')
     parser.add_argument('--replay_k', type=int, default=5, help='In the case of HER, the ratio of HER replays vs normal replays')
     parser.add_argument('--num_until', type=int, default=1000, help='Number of steps for epsilon to be 0.05')
-
+    parser.add_argument('--name', type=str, default='test')
     config = parser.parse_args()
 
     # Train the model

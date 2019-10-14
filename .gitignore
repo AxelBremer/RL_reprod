@@ -3,6 +3,7 @@
 # Edit at https://www.gitignore.io/?templates=python,visualstudiocode
 
 runs/
+old_runs/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
