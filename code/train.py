@@ -32,10 +32,10 @@ def push_transition_and_error(model, memory, transition, discount_factor):
     s, a, r, n_s, done = transition
     
     # convert to PyTorch datatypes
-    s = torch.tensor(s, dtype=torch.float).to(device)
+    s = torch.tensor(s, dtype=torch.float).to(device).squeeze()
     a = torch.tensor(a, dtype=torch.int64).to(device)
     r = torch.tensor(r, dtype=torch.float).to(device)
-    n_s = torch.tensor(n_s, dtype=torch.float).to(device)
+    n_s = torch.tensor(n_s, dtype=torch.float).to(device).squeeze()
     done = torch.tensor(done, dtype=torch.uint8).to(device)
 
     with torch.no_grad():
