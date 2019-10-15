@@ -109,9 +109,6 @@ def main(config):
         her = HindsightExperienceReplay()
         her.reset()
 
-    if config.replay_type == 'P':
-        error = torch.tensor(memory.tree.total().item())
-
     print('env spaces', input_space, output_space)
 
     path = create_folders(config, env_name, mem_name)
@@ -192,10 +189,8 @@ def main(config):
                 mem = True
             
             transition = (st, a, r, st1, done)
-            if mem_name == 'prioritized_replay' and mem:
+            if mem_name == 'prioritized_replay':
                 push_transition_and_error(model, memory, transition, config.discount_factor)
-            elif mem_name == 'prioritized_replay' and not mem:
-                memory.push(transition, error)
             else:
                 memory.push(transition)
 
