@@ -32,10 +32,10 @@ def push_transition_and_error(model, memory, transition, discount_factor):
     s, a, r, n_s, done = transition
     
     # convert to PyTorch datatypes
-    s = torch.tensor(s, dtype=torch.float).to(device)
+    s = torch.tensor(s, dtype=torch.float).to(device).squeeze()
     a = torch.tensor(a, dtype=torch.int64).to(device)
     r = torch.tensor(r, dtype=torch.float).to(device)
-    n_s = torch.tensor(n_s, dtype=torch.float).to(device)
+    n_s = torch.tensor(n_s, dtype=torch.float).to(device).squeeze()
     done = torch.tensor(done, dtype=torch.uint8).to(device)
 
     with torch.no_grad():
@@ -108,9 +108,6 @@ def main(config):
         HINDSIGHT_ER = True
         her = HindsightExperienceReplay()
         her.reset()
-
-    if config.replay_type == 'P':
-        error = torch.tensor(memory.tree.total().item())
 
     print('env spaces', input_space, output_space)
 
@@ -192,10 +189,8 @@ def main(config):
                 mem = True
             
             transition = (st, a, r, st1, done)
-            if mem_name == 'prioritized_replay' and mem:
+            if mem_name == 'prioritized_replay':
                 push_transition_and_error(model, memory, transition, config.discount_factor)
-            elif mem_name == 'prioritized_replay' and not mem:
-                memory.push(transition, error)
             else:
                 memory.push(transition)
 

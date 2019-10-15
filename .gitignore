@@ -4,6 +4,7 @@
 
 runs/
 old_runs/
+.DS_Store
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
