@@ -2,6 +2,7 @@ import numpy as np
 
 # implementation from https://github.com/rlcode/per/blob/master/SumTree.py
 
+# a binary tree data structure where the parent’s value is the sum of its children
 class SumTree():
 
     write = 0

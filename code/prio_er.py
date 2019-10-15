@@ -3,18 +3,17 @@ import numpy as np
 import random
 import torch
 
-# implementation from https://github.com/rlcode/per/blob/master/SumTree.py
+# implementation from https://github.com/rlcode/per/blob/master/prioritized_memory.py 
 
 class PrioritizedER():
 
     # to ensure we do operations on non-zero values
-    e = 10e-3
+    e = 10e-2
 
     def __init__(self, capacity, n_episodes, alpha=0.6, beta=0.4):
         self.alpha = alpha
         self.beta = beta
         self.capacity = capacity
-        # self.alpha_increment_per_sampling = (1-alpha) / n_episodes
         self.beta_increment_per_sampling = (1-beta) / n_episodes
         # self.beta_increment_per_sampling = 0.001
         self.tree = SumTree(capacity)
@@ -34,7 +33,6 @@ class PrioritizedER():
         priorities = []
 
         # clip the hyperparameters to 1
-        # self.alpha = np.min(1., self.alpha + self.alpha_increment_per_sampling)
         # self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
 
         for i in range(batch_size):
@@ -66,5 +64,4 @@ class PrioritizedER():
 
     def anneal_hyperparams(self):
         # clip the hyperparameters to 1, just in case
-        # self.alpha = np.min([1., self.alpha + self.alpha_increment_per_sampling])
         self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
