@@ -7,15 +7,14 @@ import torch
 
 class PrioritizedER():
 
-    # to ensure we do operations on non-zero values
-    e = 10e-2
-
     def __init__(self, capacity, n_episodes, alpha=0.6, beta=0.4):
         self.alpha = alpha
         self.beta = beta
         self.capacity = capacity
         self.beta_increment_per_sampling = (1-beta) / n_episodes
         # self.beta_increment_per_sampling = 0.001
+        # to ensure we do operations on non-zero values
+        self.e = 10e-2
         self.tree = SumTree(capacity)
 
     def _get_priority(self, error):
@@ -45,7 +44,8 @@ class PrioritizedER():
             batch.append(data)
             idxs.append(idx)
 
-        sampling_probabilities = priorities / self.tree.total()
+        # add epsilon for stability
+        sampling_probabilities = priorities / self.tree.total() + self.e
         if self.tree.n_entries == 0:
             print('JOE JOE: n_entries zijn nul -----------:', self.tree.n_entries)
         elif 0 in sampling_probabilities:
