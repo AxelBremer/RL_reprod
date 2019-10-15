@@ -45,7 +45,7 @@ class PrioritizedER():
             idxs.append(idx)
 
         # add epsilon for stability
-        sampling_probabilities = priorities / self.tree.total() + self.e
+        sampling_probabilities = priorities / self.tree.total() + 10e-5
         if self.tree.n_entries == 0:
             print('JOE JOE: n_entries zijn nul -----------:', self.tree.n_entries)
         elif 0 in sampling_probabilities:
