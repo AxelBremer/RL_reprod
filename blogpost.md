@@ -1,5 +1,5 @@
 # How to learn from experience?
-**TODO: intro hier maken of subtitle weg halen**
+In this blogpost we investigate the effect of 3 different forms of experience replay on 4 different environments. As an additional experiment, we also investigate the effect of setting the hyperparameter of these methods to different values. 
 
 ## Deep Q Networks and Experience Replay?
 
@@ -52,13 +52,11 @@ We will investigate the behaviour of the introduced experience replay methods on
 
 Also, if you recall, we explained earlier that experience replay should have a positive influence on the training stability and the sample efficiency. Thus, we will compare the influence of each method on each environment w.r.t. the number of training steps, samples needed for convergence, and the cumulative reward.
 
-Apart from this, according to this [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf), there is another important component to experience replay which effect has been underestimated: the memory buffer size! They show that for different environments, different buffer sizes are optimal. For example, uniform experience replay does not stimulate the algorithm much to use recent transitions, except by throwing out the oldes experiences when the maximum capacity is reached. However, when the buffer size is set to e.g. $10^6$ then the probability of using recent transitions, once the buffer is reaching maximum capacity, is very small. If too little recent experiences are used this can negatively effect the performance, in which case we would say that the buffer size is too large. Contrary, you could not use enough older experiences i.e. set your buffer size too samll as well.
+Apart from this, according to this [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf), there is another important component to experience replay which effect has been underestimated: the memory buffer size! They show that for different environments, different buffer sizes are optimal. For example, uniform experience replay does not stimulate the algorithm much to use recent transitions, except by throwing out the oldest experiences when the maximum capacity is reached. However, when the buffer size is set to e.g. $10^6$ then the probability of using recent transitions, once the buffer is reaching maximum capacity, is very small. If too little recent experiences are used, this can negatively effect the performance in which case we would say that the buffer size is too large. Contrary, you could not use enough older experiences i.e. set your buffer size too small as well. 
 
-Thus, we perform an additional experiment, where we will run each form of experience replay on each environment with 3 different values for the buffer size capacity: 3000 (small), 10.000 (medium), 30.000 (large). From these we will use the results from the most optimal buffer size for investigation. 
+Whether these buffer sizes are too little or too small depends however on your environment. Thus, we perform an additional experiment, where we will run each form of experience replay on each environment with 3 different values for the buffer size capacity: 3000 (small), 10.000 (medium), 30.000 (large). From these we will use the results from the most optimal buffer size for investigation. 
 
 Since the randomness in the architecture can affect the results, we run the model 5 times with different random seeds and report the average and variance over these results.
-
-
 
 ## Implementation Details
 ### Deep Q-Network
