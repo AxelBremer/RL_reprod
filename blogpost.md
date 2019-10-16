@@ -145,7 +145,7 @@ In the acrobot environment, all replay types reach around the same reward, altho
 
 It is important to show not only returns but demonstrations of the learned policy in action. Without understanding what the evaluation returns indicate, it is possible that misleading results can be reported which in reality only optimize local optima rather than reaching the desired behaviour.
 
-
+![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
 ## Conclusion
 
