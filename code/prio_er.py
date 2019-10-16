@@ -1,69 +1,127 @@
-from sumtree import SumTree
-import numpy as np
+# from sumtree import SumTree
+# import numpy as np
+# import random
+# import torch
+
+# # implementation from https://github.com/rlcode/per/blob/master/prioritized_memory.py 
+
+# class PrioritizedER():
+
+#     def __init__(self, capacity, alpha=0.6, beta=0.4):
+#         self.alpha = alpha
+#         self.beta = beta
+#         self.capacity = capacity
+#         # self.beta_increment_per_sampling = (1-beta) / n_episodes
+#         self.beta_increment_per_sampling = 0.001
+#         # to ensure we do operations on non-zero values
+#         self.e = 10e-2
+#         self.tree = SumTree(capacity)
+
+#     def _get_priority(self, error):
+#         return (abs(error) + self.e) ** self.alpha
+
+#     # and store in tree:
+#     def push(self, transition, error):
+#         delta = self._get_priority(error)
+#         self.tree.add(delta, transition)
+
+#     def sample(self, batch_size):
+#         batch = []
+#         idxs = []
+#         segment = self.tree.total() / batch_size
+#         priorities = []
+
+#         # clip the hyperparameters to 1
+#         self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
+
+#         for i in range(batch_size):
+#             a = segment * i
+#             b = segment * (i + 1)
+
+#             s = random.uniform(a, b)
+#             (idx, p, data) = self.tree.get(s)
+#             priorities.append(p)
+#             batch.append(data)
+#             idxs.append(idx)
+
+#         # add epsilon for stability
+#         sampling_probabilities = priorities / self.tree.total() + 10e-5
+#         if self.tree.n_entries == 0:
+#             print('JOE JOE: n_entries zijn nul -----------:', self.tree.n_entries)
+#             print('priotities:', priorities)
+#             print('total:', self.tree.total())
+#         elif 0 in sampling_probabilities:
+#             print('JOE JOE: sampling probabilities zijn nul -----------:', sampling_probabilities)
+#         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
+#         is_weight /= is_weight.max()
+
+#         return batch, idxs, is_weight
+
+#     def update(self, idx, error):
+#         delta = self._get_priority(error)
+#         self.tree.update(idx, delta)
+
+#     def __len__(self):
+#         return self.tree.n_entries
+
+    # def anneal_hyperparams(self):
+    #     # clip the hyperparameters to 1, just in case
+    #     self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
+
+
 import random
-import torch
+import numpy as np
+from sumtree import SumTree
 
-# implementation from https://github.com/rlcode/per/blob/master/prioritized_memory.py 
+class PrioritizedER:  # stored as ( s, a, r, s_ ) in SumTree
+    e = 0.01
+    a = 0.6
+    beta = 0.4
+    beta_increment_per_sampling = 0.001
 
-class PrioritizedER():
-
-    def __init__(self, capacity, n_episodes, alpha=0.6, beta=0.4):
-        self.alpha = alpha
-        self.beta = beta
-        self.capacity = capacity
-        # self.beta_increment_per_sampling = (1-beta) / n_episodes
-        self.beta_increment_per_sampling = 0.001
-        # to ensure we do operations on non-zero values
-        self.e = 10e-2
+    def __init__(self, capacity):
         self.tree = SumTree(capacity)
+        self.capacity = capacity
 
     def _get_priority(self, error):
-        return (abs(error) + self.e) ** self.alpha
+        return (abs(error) + self.e) ** self.a
 
-    # and store in tree:
-    def push(self, transition, error):
-        delta = self._get_priority(error)
-        self.tree.add(delta, transition)
+    def push(self, error, sample):
+        p = self._get_priority(error)
+        self.tree.add(p, sample)
 
-    def sample(self, batch_size):
+    def sample(self, n):
         batch = []
         idxs = []
-        segment = self.tree.total() / batch_size
+        segment = self.tree.total() / n
         priorities = []
 
-        # clip the hyperparameters to 1
         self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
 
-        for i in range(batch_size):
+        for i in range(n):
             a = segment * i
             b = segment * (i + 1)
 
             s = random.uniform(a, b)
             (idx, p, data) = self.tree.get(s)
+            if data == 0:
+                p = priorities[-1]
+                data = batch[-1]
+                idx = idxs[-1]
+                print('WARNING: transition value was 0, replaced it with the previous sampled transition')
             priorities.append(p)
             batch.append(data)
             idxs.append(idx)
 
-        # add epsilon for stability
-        sampling_probabilities = priorities / self.tree.total() + 10e-5
-        if self.tree.n_entries == 0:
-            print('JOE JOE: n_entries zijn nul -----------:', self.tree.n_entries)
-            print('priotities:', priorities)
-            print('total:', self.tree.total())
-        elif 0 in sampling_probabilities:
-            print('JOE JOE: sampling probabilities zijn nul -----------:', sampling_probabilities)
+        sampling_probabilities = ( priorities / self.tree.total() ) + 10e-5
         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
         is_weight /= is_weight.max()
 
         return batch, idxs, is_weight
 
     def update(self, idx, error):
-        delta = self._get_priority(error)
-        self.tree.update(idx, delta)
-
+        p = self._get_priority(error)
+        self.tree.update(idx, p)
+    
     def __len__(self):
         return self.tree.n_entries
-
-    # def anneal_hyperparams(self):
-    #     # clip the hyperparameters to 1, just in case
-    #     self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
