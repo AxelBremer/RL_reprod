@@ -104,6 +104,11 @@ class PrioritizedER:  # stored as ( s, a, r, s_ ) in SumTree
 
             s = random.uniform(a, b)
             (idx, p, data) = self.tree.get(s)
+            if data == 0:
+                p = priorities[-1]
+                data = batch[-1]
+                idx = idxs[-1]
+                print('WARNING: transition value was 0, replaced it with the previous sampled transition')
             priorities.append(p)
             batch.append(data)
             idxs.append(idx)
