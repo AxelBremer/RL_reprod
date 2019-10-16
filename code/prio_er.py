@@ -108,7 +108,7 @@ class PrioritizedER:  # stored as ( s, a, r, s_ ) in SumTree
             batch.append(data)
             idxs.append(idx)
 
-        sampling_probabilities = priorities / self.tree.total()
+        sampling_probabilities = ( priorities / self.tree.total() ) + 10e-5
         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
         is_weight /= is_weight.max()
 
