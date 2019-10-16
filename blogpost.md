@@ -85,7 +85,7 @@ class PrioritizedER():
         self.alpha = alpha
         self.beta = beta
         self.capacity = capacity
-        self.beta_increment_per_sampling = (1-beta) / n_episodes
+        self.beta_increment_per_sampling = 0.001
         self.e = 10e-2
         self.tree = SumTree(capacity)
 
