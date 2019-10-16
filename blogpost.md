@@ -62,6 +62,8 @@ We use a two layered DQN that is trained with the Adam optimizer.
 For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a grid search over $\alpha =[0.0001, 0.0005, 0.001]$ and $\gamma =[0.7, 0.75, 0.8, 0.99]$ for each environment. Since the tasks we train on are very different, we can not just use the hyperparameter values that perform well on one environment and expect it to generalize well to the others. 
 <!-- For the first three games it is sufficient to train the agent for 300 episodes, but through experimentation we found that MountainCar needs 1000 episodes to converge. -->
 
+<center>
+
 |              | $\alpha$ | $\gamma$ |
 |--------------|----------|----------|
 | Cliffworld   |          |          |
@@ -69,6 +71,7 @@ For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a g
 | Cartpole     |          |          |
 | Mountain Car |          |          |
 
+</center>
 
 Thus, we use the same model with different hyperparameter values for each environment, but the model remains constant for each of the ER methods. Since we are interested in the effect of the ER methods in each environment, this is a fair comparison. 
 
