@@ -78,7 +78,7 @@ The other hyperparameter is $\beta$, this value controls how much prioritization
 Both values for the hyperparamters were found in the original paper using a coarse grid-search. 
 
 
-'''python
+```python
 class PrioritizedER():
 
     def __init__(self, capacity, n_episodes, alpha=0.6, beta=0.4):
@@ -113,7 +113,7 @@ class PrioritizedER():
         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
         is_weight /= is_weight.max()
         return batch, idxs, is_weight
-'''
+```
 
 Furthermore, it would be costly to store the transitions in a list, as we would have to traverse the whole list and compare all the $|\delta_i|$ values. As a solution, the paper proposes a sum-tree data structure to store the transitions, as a result we now achieve a complexity of $O\log N$ when updating and sampling. We used [this](https://github.com/rlcode/per/blob/master/SumTree.py) code to implement the sum-tree.
 
