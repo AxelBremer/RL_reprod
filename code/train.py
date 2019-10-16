@@ -12,6 +12,7 @@ from torch import optim
 from tqdm import tqdm as _tqdm
 
 from gym.spaces import Box, Discrete
+from gym.wrappers import Monitor
 
 import utils
 
@@ -156,8 +157,9 @@ def main(config):
     episode_losses = []
     episode_rewards = []
     for i in _tqdm(range(config.num_episodes)):
-        if i%50 == 0:
-            config.render == True
+        if i == config.num_episodes - 1:
+            env = gym.wrappers.Monitor(env, './video/',video_callable=lambda episode_id: True,force = True)
+
         st = env.reset()
 
         if isinstance(st, tuple):
