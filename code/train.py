@@ -12,6 +12,7 @@ from torch import optim
 from tqdm import tqdm as _tqdm
 
 from gym.spaces import Box, Discrete
+from gym.wrappers import Monitor
 
 import utils
 
@@ -44,7 +45,7 @@ def push_transition_and_error(model, memory, transition, discount_factor):
         target = target * (1-done).float()
 
     error = torch.abs(target - old_target)
-    memory.push(transition, error)
+    memory.push(error, transition)
 
 def train_step(model, memory, optimizer, batch_size, discount_factor, replay_type):    
     # don't learn without some decent experience
@@ -66,7 +67,7 @@ def train_step(model, memory, optimizer, batch_size, discount_factor, replay_typ
     except Exception as e:
         print(transitions)
         print(len(transitions))
-        print(transitions[127])
+        # print(transitions[127])
         print(e)
         return
 
@@ -110,7 +111,7 @@ def main(config):
 
     env, input_space, output_space, env_name = get_env(config.environment)
 
-    memory, mem_name = get_memory(config.replay_type, config.replay_capacity, config.num_episodes)
+    memory, mem_name = get_memory(config.replay_type, config.replay_capacity)
 
     # If we're doing hindsight ER, we do things a little bit different
     HINDSIGHT_ER = False
@@ -156,8 +157,9 @@ def main(config):
     episode_losses = []
     episode_rewards = []
     for i in _tqdm(range(config.num_episodes)):
-        if i%50 == 0:
-            config.render == True
+        if i == config.num_episodes - 1:
+            env = gym.wrappers.Monitor(env, './video/',video_callable=lambda episode_id: True,force = True)
+
         st = env.reset()
 
         if isinstance(st, tuple):

@@ -4,14 +4,14 @@ from types import SimpleNamespace
 
 num_of_runs = 5
 # buffer_size = [3000, 10000, 30000]
-buffer_size = [100, 1000, 100000]
+buffer_size = [100000]
 # replay_types = ['S', 'H', 'P']
 replay_types = ['P']
-buffer_size = [
-        3000,
-        10000,
-        30000
-]
+# buffer_size = [
+#         3000,
+#         10000,
+#         30000
+# ]
 
 def create_config(run_config, bs, rt):
     single_run_config = SimpleNamespace(**vars(run_config))
