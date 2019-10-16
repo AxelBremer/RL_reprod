@@ -54,11 +54,21 @@ def train_step(model, memory, optimizer, batch_size, discount_factor, replay_typ
     # random transition batch is taken from experience replay memory
     if replay_type == 'P':
         transitions, idxs, is_weights = memory.sample(batch_size)
+        transitions = transitions[:-1]
+        idxs = idxs[:-1]
+        is_weights = is_weights[:-1]
     else:
         transitions = memory.sample(batch_size)
     
     # transition is a list of 4-tuples, instead we want 4 vectors (as torch.Tensor's)
-    state, action, reward, next_state, done = zip(*transitions)
+    try:
+        state, action, reward, next_state, done = zip(*transitions)
+    except Exception as e:
+        print(transitions)
+        print(len(transitions))
+        print(transitions[127])
+        print(e)
+        return
 
     # convert to PyTorch and define types
     state = torch.tensor(state, dtype=torch.float).to(device).squeeze()
@@ -77,7 +87,7 @@ def train_step(model, memory, optimizer, batch_size, discount_factor, replay_typ
     if replay_type == 'P':
         errors = torch.abs(q_val - target).data.cpu().numpy()
         # update priority
-        for i in range(batch_size):
+        for i in range(batch_size - 1):
             idx = idxs[i]
             memory.update(idx, errors[i])
 

@@ -48,6 +48,8 @@ class PrioritizedER():
         sampling_probabilities = priorities / self.tree.total() + 10e-5
         if self.tree.n_entries == 0:
             print('JOE JOE: n_entries zijn nul -----------:', self.tree.n_entries)
+            print('priotities:', priorities)
+            print('total:', self.tree.total())
         elif 0 in sampling_probabilities:
             print('JOE JOE: sampling probabilities zijn nul -----------:', sampling_probabilities)
         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
