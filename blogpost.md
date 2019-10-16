@@ -1,6 +1,5 @@
 # How to learn from experience?
-
-**Note: this blog post is written for people with an in-depth understanding of Q-learning and Deep Q Networks.**
+**TODO: intro hier maken of subtitle weg halen**
 
 ## Deep Q networks and experience replay?
 
@@ -12,6 +11,9 @@ One problem that we face during training DQN's however, is that in RL, the agent
 2. DQN’s like most NN’s suffer from the problem that they tend to forget data it has seen in the past. In standard RL algorithms, this wouldn’t be a problem as experiences are discarded as soon as they are used. However, in the case of NN’s it is beneficial to train on the same experiences multiple times at different stages of training, especially since convergence of the Q-values can be slow. The temporal nature of our data will however cause the DQN to be biased to forgetting its early experiences. We don’t simply want the agent to forget what it has seen further in the past.
 
 These problems can both have a negative impact on the stability of the training process. Luckily, a solution to both problems is found in experience replay. The idea is simple, we only have to store the agent’s experiences in a memory buffer. This way, we can sample from this buffer during training which both breaks the temporal correlation between data samples, and at the same time allows the model to re-train on previous experiences.
+
+![eot](https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/live-die-repeat-title.jpg, "live die repeat")
+
 Storing previous experiences and training on them multiple times also has an additional benefit as we can now optimally exploit every single sampled transition we have by controlling how and how often it is "remembered". This means that we can learn more with the same amount of samples i.e. it is more sample efficient. This is especially beneficial in cases where gaining real-world experience is expensive. Thus, experience replay stabilizes the training process and increases the sample efficiency.
 
 ## Different types of experience replay and environments
@@ -129,9 +131,11 @@ Since we are dealing with environments that have only one goal, our implementati
 One parameter called ‘replay k’ is introduced which sets the ratio of HER replays versus normal replays in the buffer. We set ‘replay k’ to 4 as that is what is also used by OpenAI in their experiments, especially since we are only changing the value of only the last state of an episode.
 
 ## Results
-It is important to show not only returns but demonstrations of the learned policy in action. Without understanding what the evaluation returns indicate, it is possible that misleading results can be reported which in reality only optimize local optima rather than reaching the desired behaviour.”
-Misschien kunnen we een gifje maken van de laatste paar episodes, om te kijken of de geleerde policy ‘ideaal’ is? 
+First we'll look at the performance of each replay type for every environment. We'll use the buffer size that performed best on each environment.
+![plot1](./plots/replay_types.png "Plot of replay types on the environments")
+In the acrobot environment, all replay types reach around the same reward, although PER gets there the quickest. Interestingly in the cliff env, ER outperforms HER and PER significantly.
 
+It is important to show not only returns but demonstrations of the learned policy in action. Without understanding what the evaluation returns indicate, it is possible that misleading results can be reported which in reality only optimize local optima rather than reaching the desired behaviour.
 
 ## maybe remove this?
 ### Solution to the problem - combined experience replay (CER)
