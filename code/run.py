@@ -7,6 +7,11 @@ buffer_size = [3000, 10000, 30000]
 # buffer_size = [100, 1000, 100000]
 # replay_types = ['S', 'H', 'P']
 replay_types = ['P']
+buffer_size = [
+        3000,
+        10000,
+        30000
+]
 
 def create_config(run_config, bs, rt):
     single_run_config = SimpleNamespace(**vars(run_config))
@@ -23,8 +28,8 @@ def create_config_gs(run_config, lr, df):
     return single_run_config
 
 def main(run_config):
-    for bs in buffer_size:
-        for rt in replay_types:
+    for rt in replay_types:
+        for bs in buffer_size:
             for i in range(num_of_runs):
                 train_config = create_config(run_config, bs, rt)
                 print(f'Starting trainin on: {train_config.name}')
