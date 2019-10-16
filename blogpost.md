@@ -18,7 +18,7 @@ Storing previous experiences and training on them multiple times also has an add
 Now that we have understood why it is important to maintain a memory buffer, we can think of what the most optimal way is to do this. Various experience replay methods have been developed and they mostly differ in two main aspects: 1. which experiences do we store in the memory buffer? and 2. How do we efficiently sample from this memory buffer? How each method handles these questions will influence different types of environments differently and thus each method is typically developed to handle different types of problems. In this blogpost we will look at three different ways to employ experience replay.
 
 ### Uniform experience replay (ER)
- Each experience is stored into the buffer and when we reach the limit capacity \textit{n}, we discard our oldest memories. Thus, we keep our most recent memories in the buffer. For sampling, we simply take a random batch of experiences.  The samples are thus replayed uniformly. Sample behaviour that is seen more often will therefore also be repeated more and more often.
+Each experience is stored into the buffer and when we reach the limit capacity \textit{n}, we discard our oldest memories. Thus, we keep our most recent memories in the buffer. For sampling, we simply take a random batch of experiences.  The samples are thus replayed uniformly. Sample behaviour that is seen more often will therefore also be repeated more and more often.
 ### Prioritized experience replay (PER)
 This method is developed to really exploit samples that display rare or surprising behaviour. The key intuition behind this is that the model can learn more from certain samples than from others, and thus we shouldn’t blindly repeat each of them with equal frequency. Instead, we should \textit{prioritize} replaying certain samples over others. 
 *So how do we determine which samples should be prioritized?* Ideally, we would like to know how much the agent can learn from a transition in its current state, but this knowledge is not accessible to us. Luckily, we can approximate this with another metric. Since we are trying to minimize the magnitude of the TD error as an objective function, we can use the absolute TD error $|\delta\_i|$ as a proxy of how much priority a sample i should get.  Where: 
@@ -68,6 +68,44 @@ Thus, we use the same model with different hyperparameter values for each enviro
 PER has two hyperparamteres. $\alpha$ controls the level of prioritization that is applied, when $\alpha \rightarrow 0$ there is no prioritization, whereas, when $\alpha \rightarrow 1$ there is full prioritization. We don't want to apply full prioritization, because otherwise our model would overfit. Therefore, we assign $\alpha$ a value of 0.6.
 The other hyperparameter is $\beta$, this value controls how much prioritization is applied. In the paper it is discussed how it is beneficial to apply more prioritization as we are learning more. Therefore, this value is linearly annealed to 1, from its initial value of 0.4.
 Both values for the hyperparamters were found in the original paper using a coarse grid-search. 
+
+
+'''python
+class PrioritizedER():
+
+    def __init__(self, capacity, n_episodes, alpha=0.6, beta=0.4):
+        self.alpha = alpha
+        self.beta = beta
+        self.capacity = capacity
+        self.beta_increment_per_sampling = (1-beta) / n_episodes
+        self.e = 10e-2
+        self.tree = SumTree(capacity)
+
+    def push(self, transition, error):
+        delta = (abs(error) + self.e) ** self.alpha
+        self.tree.add(delta, transition)
+
+    def sample(self, batch_size):
+        batch = []
+        idxs = []
+        segment = self.tree.total() / batch_size
+        priorities = []
+
+        for i in range(batch_size):
+            a = segment * i
+            b = segment * (i + 1)
+
+            s = random.uniform(a, b)
+            (idx, p, data) = self.tree.get(s)
+            priorities.append(p)
+            batch.append(data)
+            idxs.append(idx)
+
+        sampling_probabilities = priorities / self.tree.total() + 10e-5
+        is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
+        is_weight /= is_weight.max()
+        return batch, idxs, is_weight
+'''
 
 Furthermore, it would be costly to store the transitions in a list, as we would have to traverse the whole list and compare all the $|\delta_i|$ values. As a solution, the paper proposes a sum-tree data structure to store the transitions, as a result we now achieve a complexity of $O\log N$ when updating and sampling. We used [this](https://github.com/rlcode/per/blob/master/SumTree.py) code to implement the sum-tree.
 
