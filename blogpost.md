@@ -61,11 +61,18 @@ We use a two layered DQN that is trained with the Adam optimizer.
 For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a grid search over $\alpha =[0.0001, 0.0005, 0.001]$ and $\gamma =[0.7, 0.75, 0.8, 0.99]$ for each environment. Since the tasks we train on are very different, we can not just use the hyperparameter values that perform well on one environment and expect it to generalize well to the others. 
 <!-- For the first three games it is sufficient to train the agent for 300 episodes, but through experimentation we found that MountainCar needs 1000 episodes to converge. -->
 
+|              | $\alpha$ | $\gamma$ |
+|--------------|----------|----------|
+| Cliffworld   |          |          |
+| Acrobot      |          |          |
+| Cartpole     |          |          |
+| Mountain Car |          |          |
+
 
 Thus, we use the same model with different hyperparameter values for each environment, but the model remains constant for each of the ER methods. Since we are interested in the effect of the ER methods in each environment, this is a fair comparison. 
 
 ### PER 
-PER has two hyperparamteres. $\alpha$ controls the level of prioritization that is applied, when $\alpha \rightarrow 0$ there is no prioritization, whereas, when $\alpha \rightarrow 1$ there is full prioritization. We don't want to apply full prioritization, because otherwise our model would overfit. Therefore, we assign $\alpha$ a value of 0.6.
+PER has two hyperparameters. $\alpha$ controls the level of prioritization that is applied, when $\alpha \rightarrow 0$ there is no prioritization, whereas, when $\alpha \rightarrow 1$ there is full prioritization. We don't want to apply full prioritization, because otherwise our model would overfit. Therefore, we assign $\alpha$ a value of 0.6.
 The other hyperparameter is $\beta$, this value controls how much prioritization is applied. In the paper it is discussed how it is beneficial to apply more prioritization as we are learning more. Therefore, this value is linearly annealed to 1, from its initial value of 0.4.
 Both values for the hyperparamters were found in the original paper using a coarse grid-search. 
 
@@ -84,9 +91,10 @@ It is important to show not only returns but demonstrations of the learned polic
 Misschien kunnen we een gifje maken van de laatste paar episodes, om te kijken of de geleerde policy ‘ideaal’ is? 
 
 
-
+## maybe remove this?
 ### Solution to the problem - combined experience replay (CER)
 The paper also proposes a solution to the exposed problem. This solution is called combined experience replay (CER), an extension to uniform experience replay. The goal of CER is not to improve experience replay, but rather to combat the flaws of the buffer size hyperparameter. More specifically, CER is not expected to improve performance when the buffer size is already set to the correct value. Instead, CER is only expected to improve performance when the buffer size is set to a suboptimal value. 
 
 The idea of CER is centered around the fact that uniform experience replay does not stimulate the algorithm to use recent transitions, in contrary, when the buffer size is set to e.g. $10^6$ then the probability of using recent transitions, once the buffer is reaching maximum capacity, is very small. CER circumvents this by replacing the oldest transition from a batch with the most recent one. Ultimately increasing the frequency in which the algorithm uses recent transitions. We will implement this trick to see whether it indeed alleviates any possibly negative impact caused by the memory buffer size. 
+
 ## Conclusion
