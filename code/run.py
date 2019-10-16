@@ -3,10 +3,15 @@ import argparse
 from types import SimpleNamespace
 
 num_of_runs = 5
-buffer_size = [3000, 10000, 30000]
-# buffer_size = [100, 1000, 100000]
+# buffer_size = [3000, 10000, 30000]
+buffer_size = [100, 1000, 100000]
 # replay_types = ['S', 'H', 'P']
 replay_types = ['P']
+buffer_size = [
+        3000,
+        10000,
+        30000
+]
 
 def create_config(run_config, bs, rt):
     single_run_config = SimpleNamespace(**vars(run_config))
@@ -23,15 +28,12 @@ def create_config_gs(run_config, lr, df):
     return single_run_config
 
 def main(run_config):
-    for bs in buffer_size:
-        for rt in replay_types:
+    for rt in replay_types:
+        for bs in buffer_size:
             for i in range(num_of_runs):
                 train_config = create_config(run_config, bs, rt)
                 print(f'Starting trainin on: {train_config.name}')
-                try:
-                    train.main(train_config)
-                except Exception as e:
-                    print('ERRRRRRRROR\n',e)
+                train.main(train_config)
 
 def main2(run_config):
     for lr in lrs:
@@ -51,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument('--environment', type=str, required=True, help='What environment to use: [M]ountainCar, [A]crobot, [C]artpole, [G]ridworld')
     parser.add_argument('--replay_capacity', type=int, default=10000, help='Number of moves to save in replay memory')
 
-    parser.add_argument('--learning_rate', type=float, default=0.001, help='Learning rate for Adam')
+    parser.add_argument('--learning_rate', type=float, default=0.0001, help='Learning rate for Adam')
     parser.add_argument('--num_episodes', type=int, default=100, help='Number of episodes to train on')
     parser.add_argument('--render', type=bool, default=False, help='Boolean to render environment or not')
     parser.add_argument('--discount_factor', type=float, default=0.8, help='Discount factor')
