@@ -165,9 +165,6 @@ def main(config):
             state[st] = 1
             st = state.reshape(-1, 1)
 
-        if config.replay_type == 'P':
-            memory.anneal_hyperparams()
-
         if config.render: env.render()
         
         ct = 0
