@@ -11,8 +11,8 @@ class PrioritizedER():
         self.alpha = alpha
         self.beta = beta
         self.capacity = capacity
-        self.beta_increment_per_sampling = (1-beta) / n_episodes
-        # self.beta_increment_per_sampling = 0.001
+        # self.beta_increment_per_sampling = (1-beta) / n_episodes
+        self.beta_increment_per_sampling = 0.001
         # to ensure we do operations on non-zero values
         self.e = 10e-2
         self.tree = SumTree(capacity)
@@ -32,7 +32,7 @@ class PrioritizedER():
         priorities = []
 
         # clip the hyperparameters to 1
-        # self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
+        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
 
         for i in range(batch_size):
             a = segment * i
@@ -48,6 +48,8 @@ class PrioritizedER():
         sampling_probabilities = priorities / self.tree.total() + 10e-5
         if self.tree.n_entries == 0:
             print('JOE JOE: n_entries zijn nul -----------:', self.tree.n_entries)
+            print('priotities:', priorities)
+            print('total:', self.tree.total())
         elif 0 in sampling_probabilities:
             print('JOE JOE: sampling probabilities zijn nul -----------:', sampling_probabilities)
         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
@@ -62,6 +64,6 @@ class PrioritizedER():
     def __len__(self):
         return self.tree.n_entries
 
-    def anneal_hyperparams(self):
-        # clip the hyperparameters to 1, just in case
-        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
+    # def anneal_hyperparams(self):
+    #     # clip the hyperparameters to 1, just in case
+    #     self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
