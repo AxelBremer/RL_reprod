@@ -62,6 +62,8 @@ We use a two layered DQN that is trained with the Adam optimizer.
 For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a grid search over $\alpha =[0.0001, 0.0005, 0.001]$ and $\gamma =[0.7, 0.75, 0.8, 0.99]$ for each environment. Since the tasks we train on are very different, we can not just use the hyperparameter values that perform well on one environment and expect it to generalize well to the others. 
 <!-- For the first three games it is sufficient to train the agent for 300 episodes, but through experimentation we found that MountainCar needs 1000 episodes to converge. -->
 
+<center>
+
 |              | $\alpha$ | $\gamma$ |
 |--------------|----------|----------|
 | Cliffworld   |          |          |
@@ -69,6 +71,7 @@ For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a g
 | Cartpole     |          |          |
 | Mountain Car |          |          |
 
+</center>
 
 Thus, we use the same model with different hyperparameter values for each environment, but the model remains constant for each of the ER methods. Since we are interested in the effect of the ER methods in each environment, this is a fair comparison. 
 
@@ -78,14 +81,14 @@ The other hyperparameter is $\beta$, this value controls how much prioritization
 Both values for the hyperparamters were found in the original paper using a coarse grid-search. 
 
 
-'''python
+```python
 class PrioritizedER():
 
     def __init__(self, capacity, n_episodes, alpha=0.6, beta=0.4):
         self.alpha = alpha
         self.beta = beta
         self.capacity = capacity
-        self.beta_increment_per_sampling = (1-beta) / n_episodes
+        self.beta_increment_per_sampling = 0.001
         self.e = 10e-2
         self.tree = SumTree(capacity)
 
@@ -113,7 +116,7 @@ class PrioritizedER():
         is_weight = np.power(self.tree.n_entries * sampling_probabilities, -self.beta)
         is_weight /= is_weight.max()
         return batch, idxs, is_weight
-'''
+```
 
 Furthermore, it would be costly to store the transitions in a list, as we would have to traverse the whole list and compare all the $|\delta_i|$ values. As a solution, the paper proposes a sum-tree data structure to store the transitions, as a result we now achieve a complexity of $O\log N$ when updating and sampling. We used [this](https://github.com/rlcode/per/blob/master/SumTree.py) code to implement the sum-tree.
 
