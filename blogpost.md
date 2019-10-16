@@ -146,10 +146,12 @@ It is important to show not only returns but demonstrations of the learned polic
 Misschien kunnen we een gifje maken van de laatste paar episodes, om te kijken of de geleerde policy ‘ideaal’ is? 
 
 
-## maybe remove this?
+
+
+## Conclusion
 ### Solution to the problem - combined experience replay (CER)
 The paper also proposes a solution to the exposed problem. This solution is called combined experience replay (CER), an extension to uniform experience replay. The goal of CER is not to improve experience replay, but rather to combat the flaws of the buffer size hyperparameter. More specifically, CER is not expected to improve performance when the buffer size is already set to the correct value. Instead, CER is only expected to improve performance when the buffer size is set to a suboptimal value. 
 
 The idea of CER is centered around the fact that uniform experience replay does not stimulate the algorithm to use recent transitions, in contrary, when the buffer size is set to e.g. $10^6$ then the probability of using recent transitions, once the buffer is reaching maximum capacity, is very small. CER circumvents this by replacing the oldest transition from a batch with the most recent one. Ultimately increasing the frequency in which the algorithm uses recent transitions. We will implement this trick to see whether it indeed alleviates any possibly negative impact caused by the memory buffer size. 
 
-## Conclusion
+- Dynamic buffer size? Future work
