@@ -50,8 +50,8 @@ We will investigate the behaviour of the introduced experience replay methods on
 
 Also, if you recall, we explained earlier that experience replay should have a positive influence on the training stability and the sample efficiency. Thus, we will compare the influence of each method on each environment w.r.t. the number of training steps, samples needed for convergence, and the cumulative reward.
 
-Apart from this, according to this [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf), there is another important component to experience replay which effect has been underestimated: the memory buffer size! They show that for different environments, different buffer sizes are optimal. 
-** TODO: WHY?**
+Apart from this, according to this [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf), there is another important component to experience replay which effect has been underestimated: the memory buffer size! They show that for different environments, different buffer sizes are optimal. For example, uniform experience replay does not stimulate the algorithm much to use recent transitions, except by throwing out the oldes experiences when the maximum capacity is reached. However, when the buffer size is set to e.g. $10^6$ then the probability of using recent transitions, once the buffer is reaching maximum capacity, is very small. If too little recent experiences are used this can negatively effect the performance, in which case we would say that the buffer size is too large. Contrary, you could not use enough older experiences i.e. set your buffer size too samll as well.
+
 Thus, we perform an additional experiment, where we will run each form of experience replay on each environment with 3 different values for the buffer size capacity: 3000 (small), 10.000 (medium), 30.000 (large). From these we will use the results from the most optimal buffer size for investigation. 
 
 Since the randomness in the architecture can affect the results, we run the model 5 times with different random seeds and report the average and variance over these results.
@@ -146,9 +146,10 @@ Misschien kunnen we een gifje maken van de laatste paar episodes, om te kijken o
 
 
 ## Conclusion
-### Solution to the problem - combined experience replay (CER)
-The paper also proposes a solution to the exposed problem. This solution is called combined experience replay (CER), an extension to uniform experience replay. The goal of CER is not to improve experience replay, but rather to combat the flaws of the buffer size hyperparameter. More specifically, CER is not expected to improve performance when the buffer size is already set to the correct value. Instead, CER is only expected to improve performance when the buffer size is set to a suboptimal value. 
 
-The idea of CER is centered around the fact that uniform experience replay does not stimulate the algorithm to use recent transitions, in contrary, when the buffer size is set to e.g. $10^6$ then the probability of using recent transitions, once the buffer is reaching maximum capacity, is very small. CER circumvents this by replacing the oldest transition from a batch with the most recent one. Ultimately increasing the frequency in which the algorithm uses recent transitions. We will implement this trick to see whether it indeed alleviates any possibly negative impact caused by the memory buffer size. 
+TODO: we saw that this type of ER is better on this env blabla
 
-- Dynamic buffer size? Future work
+
+Furthermore, we saw that a too small or too big buffer size has indeed a negative impact on the perfomance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Since we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project, but it would also be interesting for further research. 
+
+
