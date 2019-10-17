@@ -106,6 +106,40 @@ def train_step(model, memory, optimizer, batch_size, discount_factor, replay_typ
     
     return loss.item()  # Returns a Python scalar, and releases history (similar to .detach())
 
+def episode_best_move(config, env, input_shape, output_dim, model):
+    env = gym.wrappers.Monitor(env, './video/',video_callable=lambda episode_id: True,force = True)
+
+    st = env.reset()
+
+    if isinstance(st, tuple):
+        state = np.zeros(shape=input_shape)
+        state[st] = 1
+        st = state.reshape(-1, 1)
+
+    loss = 0
+    reward = 0
+    done = False
+    
+    while not done:
+        a = select_action(model, st, 0, device, output_dim)
+
+        st1, r, done, _ = env.step(a)
+
+        reward += r
+
+        if isinstance(st1, tuple):
+            state = np.zeros(shape=input_shape)
+            state[st1] = 1
+            st1 = state.reshape(-1, 1)
+
+        st = st1
+
+        # The Gridworld environment doesn't break automatically...
+        if config.environment == 'G' and ct == 200:
+            break
+    env.close()
+
+
 def main(config):
     print(config.__dict__)
 
@@ -132,6 +166,8 @@ def main(config):
     with open(path+'/args.txt', 'w') as f:
         json.dump(config.__dict__, f, indent=2)
 
+    input_shape = None
+
     if isinstance(input_space, Box):
         input_dim = input_space.shape[0]
     elif isinstance(input_space, Discrete):
@@ -157,9 +193,6 @@ def main(config):
     episode_losses = []
     episode_rewards = []
     for i in _tqdm(range(config.num_episodes)):
-        if i == config.num_episodes - 1:
-            env = gym.wrappers.Monitor(env, './video/',video_callable=lambda episode_id: True,force = True)
-
         st = env.reset()
 
         if isinstance(st, tuple):
@@ -237,6 +270,8 @@ def main(config):
     d = {'durations':episode_durations, 'losses':episode_losses, 'rewards':episode_rewards}
     with open(path + '/history.json', 'w') as f:
         json.dump(d, f, indent=2)
+
+    episode_best_move(config=config, env=env, input_shape=input_shape, output_dim=output_dim, model=model)
     
     return episode_durations, episode_losses, episode_rewards
 

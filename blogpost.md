@@ -25,9 +25,9 @@ Each experience is stored into the buffer and when we reach capacity, we discard
 
 ### Prioritized Experience Replay (PER)
 This method is developed to really exploit samples that display rare or surprising behaviour. The key intuition behind this is that the model can learn more from certain samples than from others, and thus we shouldn’t blindly repeat each of them with equal frequency. Instead, we should prioritize replaying certain samples over others. 
-*So how do we determine which samples should be prioritized?* Ideally, we would like to know how much the agent can learn from a transition in its current state, but this knowledge is not accessible to us. Luckily, we can approximate this with another metric. Since we are trying to minimize the magnitude of the TD error as an objective function, we can use the absolute TD error $$|\delta_i|$$ as a proxy of how much priority a sample i should get.  Where: 
+*So how do we determine which samples should be prioritized?* Ideally, we would like to know how much the agent can learn from a transition in its current state, but this knowledge is not accessible to us. Luckily, we can approximate this with another metric. Since we are trying to minimize the magnitude of the TD error as an objective function, we can use the absolute TD error $|\delta_i|$ as a proxy of how much priority a sample i should get.  Where: 
 $$\delta_{i} = r_{t} + \lambda max_{a \in A} Q_{\theta}(s_{t+1}, a) - Q_{\theta}(s_{t}, a_{t})$$
-Now, to store this information during training, we can simply extend the sample transitions we want to store in our memory buffer with this priority proxy: *(state, action, reward, new state, $$|\delta_i|$$)*. When the memory buffer reaches its capacity limit, we simply remove the oldest samples. 
+Now, to store this information during training, we can simply extend the sample transitions we want to store in our memory buffer with this priority proxy: *(state, action, reward, new state, $|\delta_i|$)*. When the memory buffer reaches its capacity limit, we simply remove the oldest samples. 
 So now we know which samples to store and how to store them, but we still need to find a way to actually use them as intended. This leads us to the second aspect: *How do we sample from the memory buffer?* We will have to construct a probability distribution where the samples with higher priorities are more likely to be picked for repetition. To get the right priorities for each sample we use the absolute TD error plus some value $\epsilon$ to ensure that each sample in the buffer will be picked with a non-zero probability. We then simply construct a probability distribution as follows:
 $$P(i) = \frac{|\delta_{i}|^{\alpha}}{\sum_k |\delta_{i}|^{\alpha}}$$
 Now to pick the more useful samples with a higher priority, we just have to sample from this distribution!
@@ -76,19 +76,19 @@ class QNetwork(nn.Module):
         return out
 ```
 
-For the learning rate $$\alpha$$ and discount factor $$\gamma$$ we first perform a grid search over $$\alpha=[0.0001, 0.0005, 0.001]$$ and $$\gamma=[0.7, 0.75, 0.8, 0.99]$$ for each environment. Since the tasks we train on are very different, we can not just use the hyperparameter values that perform well on one environment and expect it to generalize well to the others. For the first three games it is sufficient to train the agent for 300 episodes, but through experimentation we found that MountainCar needs 1000 episodes to converge. 
+For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a grid search over $\alpha=[0.0001, 0.0005, 0.001]$ and $\gamma=[0.7, 0.75, 0.8, 0.99]$ for each environment. Since the tasks we train on are very different, we can not just use the hyperparameter values that perform well on one environment and expect it to generalize well to the others. For the first three games it is sufficient to train the agent for 300 episodes, but through experimentation we found that MountainCar needs 1000 episodes to converge. 
 
 |              | $\alpha$   | $\gamma$   |
 |--------------|------------|------------|
-| Cliffworld   |  0.001   	|    0.8   	 |
-| Acrobot      |  0.01    	|    0.8   	 |
-| Cartpole     |  0.01    	|    0.99    |
-| Mountain Car |  0.01    	|    0.99    |
+| Cliffworld   |  0.0001   	|    0.8   	 |
+| Acrobot      |  0.001    	|    0.99    |
+| Cartpole     |  0.001    	|    0.8     |
+| Mountain Car |  0.001    	|    0.99    |
 
 Thus, we use the same model with different hyperparameter values for each environment, but the model remains constant for each of the ER methods. Since we are interested in the effect of the ER methods in each environment, this is a fair comparison. 
 
 ### Prioritized Experience Replay 
-The implementation of PER is based on the code from [this](https://github.com/rlcode/per/blob/master/prioritized_memory.py) GitHub. The hyperparameter $$\alpha$$ controls the level of prioritization that is applied, when $$\alpha \rightarrow 0$$ there is no prioritization, whereas, when $\alpha \rightarrow 1$ there is full prioritization. We don't want to apply full prioritization as it would cause our model to overfit. Therefore, we assign $$\alpha$$ a value of 0.6 which was found in the [original PER paper](https://arxiv.org/pdf/1511.05952.pdf) by using a coarse grid-search.
+The implementation of PER is based on the code from [this](https://github.com/rlcode/per/blob/master/prioritized_memory.py) GitHub. The hyperparameter $\alpha$ controls the level of prioritization that is applied, when $\alpha \rightarrow 0$ there is no prioritization, whereas, when $\alpha \rightarrow 1$ there is full prioritization. We don't want to apply full prioritization as it would cause our model to overfit. Therefore, we assign $\alpha$ a value of 0.6 which was found in the [original PER paper](https://arxiv.org/pdf/1511.05952.pdf) by using a coarse grid-search.
 
 
 ```python
