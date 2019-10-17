@@ -80,10 +80,10 @@ For the learning rate $$\alpha$$ and discount factor $$\gamma$$ we first perform
 
 |              | $\alpha$   | $\gamma$   |
 |--------------|------------|------------|
-| Cliffworld   |  0.001   	|    0.8   	 |
-| Acrobot      |  0.01    	|    0.8   	 |
-| Cartpole     |  0.01    	|    0.99    |
-| Mountain Car |  0.01    	|    0.99    |
+| Cliffworld   |  0.0001   	|    0.8   	 |
+| Acrobot      |  0.001    	|    0.99    |
+| Cartpole     |  0.001    	|    0.8     |
+| Mountain Car |  0.001    	|    0.99    |
 
 Thus, we use the same model with different hyperparameter values for each environment, but the model remains constant for each of the ER methods. Since we are interested in the effect of the ER methods in each environment, this is a fair comparison. 
 
