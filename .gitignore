@@ -4,6 +4,7 @@
 
 runs/
 old_runs/
+video/
 .DS_Store
 
 ### Python ###
