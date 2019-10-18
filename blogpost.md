@@ -155,15 +155,27 @@ One parameter called ‘replay k’ is introduced which sets the ratio of HER re
 
 ## Results
 
-First we'll look at the performance of each replay type for every environment. We'll use the buffer size that performed best on each environment.
+First we'll look at the behaviour of each type of experience replay in every environment seperately. The results are shown for the buffer size that performed best on each environment.
+Furthermore, if you recall correctly, using experience replay could positively effec the stability of the training process and the sample efficiency. Thus, will analyze both the variance over the performance and the time it takes for each method to converge. 
 ![plot1](./plots/replay_types.png "Plot of replay types on the environments")
-In the cliff environment, we can see that although PER gets a head start it never achieves any good rewards. Interestingly, ER outperforms HER and PER significantly. In cartpole we observe high variance for all replay types, however PER seems to perform the best. With acrobot, all replay types reach around the same reward, although PER gets there the quickest. Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance.
+
+In the cliff environment, we can see that in agreement with our hypothesis, the ER method is sufficient to obtain reasonable performance and HER and PER do not provide any competitive advantage. The behaviour of PER is, however, surprising as it performance considerably worse than ER and HER. 
+
+In cartpole we observe high variance for all replay types and its hard to say which method should be perferred, however, PER seems to learn the fastest albeit with the highest variance. Since after 250 episodes the performance of all converge to approximately the same results, which method should be perferred depends on the objective that we are trying to optimize for. If we want a more stable traning process, ER seems to be best, but if we want the most sample efficient method we should choose PER as it converges the fastest. 
+
+With acrobot, all replay types converge to similar performances, but PER converges the fastest. Since all methods also have a similar variance, this time around PER is probably the best bet. 
+
+Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance.
+
+Furthermore, we could not see a negative effect of the buffer size when only considering buffer sizes of 3000, 10.000 and 30.000. Therefore, we performed an additional experiment were we tested all the sizes described in the paper. Due to time constraints, we only tested this on the GirdWorld environment and the results are shown below. 
 
 ![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
+From this we see that a too large or small buffer size can indeed affect the performance considerably.
+
 ## Conclusion
 
-TODO: we saw that this type of ER is better on this env blabla
+In conclusion, the environments we choose do not seem to be very sensitive to these different types of experience replays. On average ER seems to be sufficient to solve these problems and implementing more sophisticated methods do not seem worth it. This is not completely unsuprising as these PER and HER were specifically developed with more complex and different problems in mind. For example, HER did not perform well on our chosen tasks, but its benefits are mostly shown on multi-goal setting which we did not test in this blogpost. 
 
 Furthermore, we saw that a too small or too big buffer size has indeed a negative impact on the perfomance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Since we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project, but it would also be interesting for further research. 
 
