@@ -39,14 +39,18 @@ Introduced by Openai in [this paper](http://papers.nips.cc/paper/7090-hindsight-
 HER can also be effectively used in multi-goal settings. As the agent can ‘hallucinate’ reaching multiple goals at the end of an episode, making it so that the agent can maximally learn from this episode. *TODO*: Formally this changes the transitions structure like this:
 
 ### Environments
+
 As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blogpost we will focus on three types of deterministic environments with different characteristics:
 
 1. A simple environment/task: [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
-2. A relatively complex environment/task: [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/) and [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)![Cartpole environment](gifs/cartpole_prio.gif)
-3. An environment with binary and sparse rewards: [MountainCarContinuous-v0](https://gym.openai.com/envs/MountainCarContinuous-v0/)![Mountaincar environment](gifs/mountaincar_her.gif)
-
+   ![Gridworld environment](plots/cliffworld.png)
+2. A relatively complex environment/task: [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/) and [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
+   ![Cartpole environment](gifs/cartpole_prio.gif)
+3. An environment with binary and sparse rewards: [MountainCarContinuous-v0](https://gym.openai.com/envs/MountainCarContinuous-v0/)
+   ![Mountaincar environment](gifs/mountaincar_her.gif)
 
 ## What will we investigate?
+
 We will investigate the behaviour of the introduced experience replay methods on the environments we just proposed. As you have hopefully understood by now, this is interesting as the method of experience replay and the type of task it is used on, may heavily influence the performance of the model. For this we form the following hypothesis: we expect PER to perform better on the more complex environment and HER to perform better on the environment with binary and sparse rewards. For the simple environment we think that ER will be sufficient and that using PER or HER might not provide a competitive advantage.
 
 Also, if you recall, we explained earlier that experience replay should have a positive influence on the training stability and the sample efficiency. Thus, we will compare the influence of each method on each environment w.r.t. the number of training steps, samples needed for convergence, and the cumulative reward.
@@ -58,7 +62,9 @@ Whether buffer sizes are too large or too small depends on your environment. Thu
 Since the randomness in the architecture can affect the results, we run the model 5 times with different random seeds and report the average and variance over these results.
 
 ## Implementation Details
+
 ### Deep Q-Network
+
 We use a simple DQN that is trained with the Adam optimizer. 
 
 ```python
@@ -86,7 +92,8 @@ For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a g
 
 Thus, we use the same model with different hyperparameter values for each environment, but the model remains constant for each of the ER methods. Since we are interested in the effect of the ER methods in each environment, this is a fair comparison. 
 
-### Prioritized Experience Replay 
+### Prioritized Experience Replay
+
 The implementation of PER is based on the code from [this](https://github.com/rlcode/per/blob/master/prioritized_memory.py) GitHub. The hyperparameter $\alpha$ controls the level of prioritization that is applied, when $\alpha \rightarrow 0$ there is no prioritization, whereas, when $\alpha \rightarrow 1$ there is full prioritization. We don't want to apply full prioritization as it would cause our model to overfit. Therefore, we assign $\alpha$ a value of 0.6 which was found in the [original PER paper](https://arxiv.org/pdf/1511.05952.pdf) by using a coarse grid-search.
 
 
@@ -130,6 +137,7 @@ class PrioritizedER():
 Furthermore, it would be costly to store the transitions in a list, as we would have to traverse the whole list and compare all the $|\delta_i|$ values. As a solution, the paper proposes a sum-tree data structure to store the transitions, as a result we now achieve a complexity of $O\log N$ when updating and sampling. We used [this](https://github.com/rlcode/per/blob/master/SumTree.py) code to implement the sum-tree.
 
 ### Hindsight Experience Replay
+
 The implementation of Hindsight Experience Replay is based on [this](https://github.com/orrivlin/Hindsight-Experience-Replay---Bit-Flipping) and [this](https://github.com/openai/baselines/tree/master/baselines/her) implementation. 
 
 Since we are dealing with environments that have only one goal, our implementation is quite simple, as we do not have to change the goal in any non-terminal states, instead we only change the achieved value in the end state of an episode. 
@@ -138,6 +146,7 @@ Since we are dealing with environments that have only one goal, our implementati
 One parameter called ‘replay k’ is introduced which sets the ratio of HER replays versus normal replays in the buffer. We set ‘replay k’ to 4 as that is what is also used by OpenAI in their experiments, especially since we are only changing the value of only the last state of an episode.
 
 ## Results
+
 First we'll look at the performance of each replay type for every environment. We'll use the buffer size that performed best on each environment.
 ![plot1](./plots/replay_types.png "Plot of replay types on the environments")
 In the acrobot environment, all replay types reach around the same reward, although PER gets there the quickest. Interestingly in the cliff env, ER outperforms HER and PER significantly.
@@ -149,7 +158,6 @@ It is important to show not only returns but demonstrations of the learned polic
 ## Conclusion
 
 TODO: we saw that this type of ER is better on this env blabla
-
 
 Furthermore, we saw that a too small or too big buffer size has indeed a negative impact on the perfomance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Since we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project, but it would also be interesting for further research. 
 
