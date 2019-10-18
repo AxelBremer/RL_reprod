@@ -140,9 +140,7 @@ One parameter called ‘replay k’ is introduced which sets the ratio of HER re
 ## Results
 First we'll look at the performance of each replay type for every environment. We'll use the buffer size that performed best on each environment.
 ![plot1](./plots/replay_types.png "Plot of replay types on the environments")
-In the acrobot environment, all replay types reach around the same reward, although PER gets there the quickest. Interestingly in the cliff env, ER outperforms HER and PER significantly.
-
-It is important to show not only returns but demonstrations of the learned policy in action. Without understanding what the evaluation returns indicate, it is possible that misleading results can be reported which in reality only optimize local optima rather than reaching the desired behaviour.
+In the cliff environment, we can see that although PER gets a head start it never achieves any good rewards. Interestingly, ER outperforms HER and PER significantly. In cartpole we observe high variance for all replay types, however PER seems to perform the best. With acrobot, all replay types reach around the same reward, although PER gets there the quickest. Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance.
 
 ![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
