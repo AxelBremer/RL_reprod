@@ -1,5 +1,5 @@
 # How to learn from experience?
-In this blogpost we investigate the effect of 3 different forms of experience replay on 4 different environments. As an additional experiment, we also investigate the effect of setting the hyperparameter of these methods to different values. 
+In this blog post we investigate the effect of 3 different forms of experience replay on 4 different environments. As an additional experiment, we also investigate the effect of setting the hyperparameter of these methods to different values. 
 
 ## Deep Q Networks and Experience Replay?
 
@@ -15,7 +15,7 @@ These problems can both have a negative impact on the stability of the training 
 Storing previous experiences and training on them multiple times also has an additional benefit as we can now optimally exploit every single sampled transition we have by controlling how and how often it is "remembered". This means that we can learn more with the same amount of samples i.e. it is more sample efficient. This is especially beneficial in cases where gaining real-world experience is expensive. Thus, experience replay stabilizes the training process and increases the sample efficiency.
 
 ## Different Types of Experience Replay and Environments
-Now that we have understood why it is important to maintain a memory buffer, we can think of what is the most optimal way to do this. Various experience replay methods have been developed and they mostly differ in two main aspects. Firstly, which experiences do we store in the memory buffer? And secondly, how do we efficiently sample from this memory buffer? How each method handles these questions will influence different types of environments differently and thus each method is typically developed to handle different types of problems. In this blogpost we will look at three different ways to employ experience replay.
+Now that we have understood why it is important to maintain a memory buffer, we can think of what is the most optimal way to do this. Various experience replay methods have been developed and they mostly differ in two main aspects. Firstly, which experiences do we store in the memory buffer? And secondly, how do we efficiently sample from this memory buffer? How each method handles these questions will influence different types of environments differently and thus each method is typically developed to handle different types of problems. In this blog post we will look at three different ways to employ experience replay.
 
 ### Uniform Experience Replay (ER)
 Each experience is stored into the buffer and when we reach capacity, we discard our oldest memories. Thus, we keep our most recent memories in the buffer. For sampling, we simply take a random batch of experiences. Each sample has the same probability of being chosen so sample behaviour that is seen more often will therefore also be repeated more and more often.
@@ -41,18 +41,18 @@ As a result, HER can also be effectively used in multi-goal settings. *So how do
 
 ### Environments
 
-As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blogpost we will focus on three types of deterministic environments with different characteristics:
+As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blog post we will focus on three types of deterministic environments with different characteristics:
 
 1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
 In the cliffworld environment the agent has to move from the starting state (S) to the goal state (G), it is a classic RL example.
-We would like to test the performance of the different experience replays, across multiple difficulty levels. We chose this environment as an example of a relatively simple environment, although interesting, compared to the others. It has a two dimensional discrete state space.
+We would like to test the performance of the different experience replays, across multiple difficulty levels. We chose this environment as an example of a relatively simple environment, although interesting, compared to the others. It has a two-dimensional discrete state space.
 ![Gridworld environment](plots/cliffworld.png)
 2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
 Acrobot steps up the difficulty from the cliffworld. The agent has to swing any part of the arm above the line. Here we clearly see that it is a more challenging environment, evident by the fact that it has a six dimensional continuous state space. 
 
 1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
-    This environment requires the agent to balance a pole on a cart, hence the name. It has to do so for as long as possible. It has a 4 dimensional continuous input, of which 2 are of infinite magnitude, and 2 discrete actions, push left and push right.
+    This environment requires the agent to balance a pole on a cart, hence the name. It has to do so for as long as possible. It has a 4-dimensional continuous input, of which 2 are of infinite magnitude, and 2 discrete actions, push left and push right.
    <!-- ![Cartpole environment](gifs/cartpole_prio.gif) -->
    <img src="gifs/cartpole_prio.gif" alt="cartpole" title="Cartpole environment" width="300"
    style="margin-right: 10px;" />
@@ -154,24 +154,24 @@ Furthermore, it would be costly to store the transitions in a list, as we would 
 
 The implementation of Hindsight Experience Replay is based on [this](https://github.com/orrivlin/Hindsight-Experience-Replay---Bit-Flipping) and [this](https://github.com/openai/baselines/tree/master/baselines/her) implementation. 
 
-Since we are dealing with environments that have only one goal, our implementation is quite simple, as we do not have to change the goal in any non-terminal states. Instead we only change the achieved value in the end state of an episode. 
+Since we are dealing with environments that have only one goal, our implementation is quite simple, as we do not have to change the goal in any non-terminal states. Instead, we only change the achieved value in the end state of an episode. 
 One parameter called ‘replay $k$’ is introduced which sets the ratio of HER replays versus normal replays in the buffer. We set ‘replay k’ to 4 as that is what is also used by OpenAI in their experiments. Concretely this means that every episode is inserted into the buffer normally, and additionally the same episode is inserted $k$ times (the hindsight replays), with an altered goal with reward 0.
 
 ## Results
 
-First we'll look at the behaviour of each type of experience replay in every environment seperately. The results are shown for the buffer size that performed best on each environment.
-Furthermore, if you recall, using experience replay could positively effect the stability of the training process and the sample efficiency. Thus, we will analyze both the variance over the performance and the time it takes for each method to converge.
+First we'll look at the behaviour of each type of experience replay in every environment separately. The results are shown for the buffer size that performed best on each environment.
+Furthermore, if you recall, using experience replay could positively affect the stability of the training process and the sample efficiency. Thus, we will analyze both the variance over the performance and the time it takes for each method to converge.
 ![plot1](./plots/replay_types.png "Plot of replay types on the environments")
 
-In the cliff environment we can see that, in agreement with our hypothesis, the ER method is sufficient to obtain reasonable performance and HER and PER do not provide any competitive advantage. The behaviour of PER is, however, surprising as it performance considerably worse than ER and HER.
+In the cliff environment we can see that, in agreement with our hypothesis, the ER method is sufficient to obtain reasonable performance and HER and PER do not provide any competitive advantage. The behaviour of PER is, however, surprising as its performance considerably worse than ER and HER.
 
-In cartpole we observe high variance for all replay types and its hard to say which method should be preferred, however, PER seems to learn the fastest albeit with the highest variance. Since after 250 episodes the performance of all converge to approximately the same results, which method should be perferred depends on the objective that we are trying to optimize for. If we want a more stable traning process, ER seems to be best, but if we want the most sample efficient method we should choose PER as it converges the fastest.
+In cartpole we observe high variance for all replay types and it's hard to say which method should be preferred, however, PER seems to learn the fastest albeit with the highest variance. Since after 250 episodes the performance of all converge to approximately the same results, which method should be preferred depends on the objective that we are trying to optimize for. If we want a more stable training process, ER seems to be best, but if we want the most sample efficient method we should choose PER as it converges the fastest.
 
 With acrobot, all replay types converge to similar performances, but PER converges the fastest. Since all methods also have a similar variance, this time around PER is probably the best bet. 
 
 Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance.
 
-Furthermore, we could not see a negative effect of the buffer size when only considering buffer sizes of 3000, 10.000 and 30.000. Therefore, we performed an additional experiment were we tested all the sizes described in the paper. Due to time constraints, we only tested this on the GirdWorld environment and the results are shown below. 
+Furthermore, we could not see a negative effect of the buffer size when only considering buffer sizes of 3000, 10.000 and 30.000. Therefore, we performed an additional experiment where we tested all the sizes described in the paper. Due to time constraints, we only tested this on the GirdWorld environment and the results are shown below. 
 
 ![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
@@ -181,7 +181,7 @@ The reason for this is that with a higher buffer size, older transitions are use
 
 ## Conclusion
 
-In conclusion, the environments we chose do not seem to be very sensitive to these different types of experience replays. On average ER seems to be sufficient to solve these problems, and implementing more sophisticated methods do not seem worth it. This is not completely unsuprising as PER and HER were specifically developed with more complex and different problems in mind. For example, HER did not perform well on our chosen tasks, but its benefits in the original paper are mostly shown on multi-goal setting which we did not test in this blogpost. 
+In conclusion, the environments we chose, do not seem to be very sensitive to these different types of experience replays. On average ER seems to be sufficient to solve these problems, and implementing more sophisticated methods do not seem worth it. This is not completely unsurprising as PER and HER were specifically developed with more complex and different problems in mind. For example, HER did not perform well on our chosen tasks, but its benefits in the original paper are mostly shown on multi-goal setting which we did not test in this blog post. 
 
 Furthermore, we saw that a too small or too big buffer size has indeed a negative impact on the performance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Additionally, we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project. This would also be interesting for further research. 
 
