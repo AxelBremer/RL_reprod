@@ -126,6 +126,7 @@ class PrioritizedER():
         idxs = []
         segment = self.tree.total() / batch_size
         priorities = []
+        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
 
         for i in range(batch_size):
             a = segment * i
