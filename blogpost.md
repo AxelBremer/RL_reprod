@@ -48,24 +48,28 @@ As a result, HER can also be effectively used in multi-goal settings. *So how do
 As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blog post we will focus on three types of deterministic environments with different characteristics:
 
 - [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
-In the cliffworld environment the agent has to move from the starting state (S) to the goal state (G), it is a classic RL example.
-We would like to test the performance of the different experience replays, across multiple difficulty levels. We chose this environment as an example of a relatively simple environment, although interesting, compared to the others. It has a two-dimensional discrete state space.
-![Gridworld environment](plots/cliffworld.png)
+    In the cliffworld environment the agent has to move from the starting state (S) to the goal state (G), it is a classic RL example. We would like to test the performance of the different experience replays, across multiple difficulty levels. We chose this environment as an example of a relatively simple environment, although interesting, compared to the others. It has a two-dimensional discrete state space.
+
+    <img src="media/cliffworld.png" alt="Gridworld" width="500" align="middle" />
 
 - [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
-Acrobot steps up the difficulty from the cliffworld. The agent has to swing any part of the arm above the line. Here we clearly see that it is a more challenging environment, evident by the fact that it has a six dimensional continuous state space. 
+    Acrobot steps up the difficulty from the cliffworld. The agent has to swing any part of the arm above the line. Here we clearly see that it is a more challenging environment, evident by the fact that it has a six dimensional continuous state space.
+
+    <img src="media/acrobot_standard.gif" alt="Acrobot" title="A trained agent in the mountaincar environment." width="300"
+   align="middle" />
 
 - [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
     This environment requires the agent to balance a pole on a cart, hence the name. It has to do so for as long as possible. It has a 4-dimensional continuous input, of which 2 are of infinite magnitude, and 2 discrete actions, push left and push right.
-   <img src="gifs/cartpole_prio.gif" alt="cartpole" title="Cartpole environment" width="300"
+
+   <img src="media/cartpole_prio.gif" alt="cartpole" title="Cartpole environment" width="300"
    align="middle" />
-   
+
 - [MountainCar-v0](https://gym.openai.com/envs/MountainCar-v0/)
 
     In this environment the agent needs to get the cart to the top of the mountain as fast as possible. It does not however have enough momentum to just drive up the mountain. It needs to drive left and right a few times to gain momentum. This environment is tricky because the agent only gets a reward for reaching the top and not while trying to gain momentum.
-   
-   <img src="gifs/mountaincar_her.gif" alt="Mountaincar" title="A trained agent in the mountaincar environment." width="300"
+
+   <img src="media/mountaincar_her.gif" alt="Mountaincar" title="A trained agent in the mountaincar environment." width="300"
    align="middle" />
 
 ## What will we investigate?
@@ -166,7 +170,7 @@ One parameter called ‘replay $k$’ is introduced which sets the ratio of HER 
 
 First we'll look at the behaviour of each type of experience replay in every environment separately. The results are shown for the buffer size that performed best on each environment.
 Furthermore, as you may recall, using experience replay could positively affect the stability of the training process and the sample efficiency. Thus, we will analyze both the variance over the performance and the time it takes for each method to converge.
-![plot1](./plots/replay_types.png "Plot of replay types on the environments")
+![plot1](./media/replay_types.png "Plot of replay types on the environments")
 
 In the cliff environment we can see that, in agreement with our hypothesis, the ER method is sufficient to obtain reasonable performance and HER and PER do not provide any competitive advantage. The behaviour of PER is, however, surprising as its performance considerably worse than ER and HER.
 
@@ -178,7 +182,7 @@ Mountain car again exhibits roughly the same performance for each replay type. I
 
 Furthermore, we could not see a negative effect of the buffer size when only considering buffer sizes of 3000, 10.000 and 30.000. Therefore, we performed an additional experiment where we tested all the sizes described in the paper. Due to time constraints, we only tested this on the GirdWorld environment and the results are shown below. 
 
-![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
+![plot2](./media/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
 We can see that for each type of experience replay a buffer size of 1000 performs the best and the higher the buffer size gets, the worse it performs. A buffer size of 100 being the exception, this performed so badly it does not show up in our figures.
 
@@ -190,4 +194,4 @@ In conclusion, the environments we chose, do not seem to be very sensitive to th
 
 Furthermore, we saw that a too small or too big buffer size indeed has a negative impact on the performance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Additionally, we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project. This would also be interesting for further research. 
 
-
+*Written by Axel Bremer, Rochelle Choenni, Max Filtenborg and Tim de Haan*
