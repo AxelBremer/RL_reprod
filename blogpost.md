@@ -45,11 +45,11 @@ As a result, HER can also be effectively used in multi-goal settings. *So how do
 As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blogpost we will focus on three types of deterministic environments with different characteristics:
 
 1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
-In the cliffworld environment the agent has to move from the starting state (S) to the goals state (G), it is a classic RL example.
-We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example. It has a two dimensional discrete state space.
+In the cliffworld environment the agent has to move from the starting state (S) to the goal state (G), it is a classic RL example.
+We would like to test the performance of the different experience replays, across multiple difficulty levels. We chose this environment as an example of a relatively simple environment, although interesting, compared to the others. It has a two dimensional discrete state space.
 ![Gridworld environment](plots/cliffworld.png)
 2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
-Acrobot stept the difficulty up from the cliffworld example. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment, it has a six dimensional continuous state space. 
+Acrobot steps up the difficulty from the cliffworld. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment, evident by the fact that it has a six dimensional continuous state space. 
 
 1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
@@ -61,16 +61,16 @@ Acrobot stept the difficulty up from the cliffworld example. The agent has to sw
 
     In this environment the agent needs to get the cart to the top of the mountain as fast as possible. It does not however have enough momentum to just drive up the mountain. It needs to drive left and right a few times to gain momentum. This environment is tricky because the agent only gets a reward for reaching the top and not while trying to gain momentum.
    <!-- ![Mountaincar environment](gifs/mountaincar_her.gif "Mountain car environment") -->
-   <img src="gifs/mountaincar_her.gif" alt="Kitten" title="A cute kitten" width="300"
+   <img src="gifs/mountaincar_her.gif" alt="Mountaincar" title="A trained agent in the mountaincar environment." width="300"
    style="margin-right: 10px;" />
 
 ## What will we investigate?
 
-We will investigate the behaviour of the introduced experience replay methods on the environments we just proposed. As you have hopefully understood by now, this is interesting as the method of experience replay and the type of task it is used on, may heavily influence the performance of the model. For this we form the following hypothesis: we expect PER to perform better on the more complex environment and HER to perform better on the environment with binary and sparse rewards. For the simple environment we think that ER will be sufficient and that using PER or HER might not provide a competitive advantage.
+We will investigate the behaviour of the introduced experience replay methods on the environments we just proposed. As you understand by now, this is interesting as the method of experience replay and the type of task it is used on, may heavily influence the performance of the model. For this we form the following hypothesis: we expect PER to perform better on the more complex environment and HER to perform better on the environment with binary and sparse rewards. For the simple environment we think that ER will be sufficient and that using PER or HER might not provide a competitive advantage.
 
-Also, if you recall, we explained earlier that experience replay should have a positive influence on the training stability and the sample efficiency. Thus, we will compare the influence of each method on each environment w.r.t. the number of training steps, samples needed for convergence, and the cumulative reward.
+Also, as you recall, we explained earlier that experience replay should have a positive influence on the training stability and the sample efficiency. Thus, we will compare the influence of each method on each environment w.r.t. the number of training steps, samples needed for convergence, and the cumulative reward.
 
-Apart from this, according to this [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf), there is another important component to experience replay which effect has been underestimated: the memory buffer size! They show that for different environments, different buffer sizes are optimal. For example, uniform experience replay does not stimulate the algorithm much to use recent transitions, except by throwing out the oldest experiences when the maximum capacity is reached. However, when the buffer size is set to e.g. $10^6$ then the probability of using recent transitions, once the buffer is reaching maximum capacity, is very small. If too little recent experiences are used, this can negatively effect the performance in which case we would say that the buffer size is too large. Contrary, you could not use enough older experiences i.e. set your buffer size too small as well. 
+Apart from this, according to this [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf), there is another important component to experience replay which effect has been underestimated: the memory buffer size. They show that for different environments, different buffer sizes are optimal. For example, uniform experience replay does not stimulate the algorithm much to use recent transitions, except by throwing out the oldest experiences when the maximum capacity is reached. However, when the buffer size is set to e.g. $10^6$ then the probability of using recent transitions, once the buffer is reaching maximum capacity, is very small. If too little recent experiences are used, this can negatively effect the performance in which case we would say that the buffer size is too large. Contrary, you could not use enough older experiences i.e. set your buffer size too small as well.
 
 Whether buffer sizes are too large or too small depends on your environment. Thus, we perform an additional experiment, where we will run each form of experience replay on each environment with 3 different values for the buffer size capacity: 3000 (small), 10.000 (medium), 30.000 (large). From these we will use the results from the most optimal buffer size for investigation. 
 
@@ -166,7 +166,7 @@ Furthermore, if you recall, using experience replay could positively effect the 
 
 In the cliff environment we can see that, in agreement with our hypothesis, the ER method is sufficient to obtain reasonable performance and HER and PER do not provide any competitive advantage. The behaviour of PER is, however, surprising as it performance considerably worse than ER and HER.
 
-In cartpole we observe high variance for all replay types and its hard to say which method should be perferred, however, PER seems to learn the fastest albeit with the highest variance. Since after 250 episodes the performance of all converge to approximately the same results, which method should be perferred depends on the objective that we are trying to optimize for. If we want a more stable traning process, ER seems to be best, but if we want the most sample efficient method we should choose PER as it converges the fastest.
+In cartpole we observe high variance for all replay types and its hard to say which method should be preferred, however, PER seems to learn the fastest albeit with the highest variance. Since after 250 episodes the performance of all converge to approximately the same results, which method should be perferred depends on the objective that we are trying to optimize for. If we want a more stable traning process, ER seems to be best, but if we want the most sample efficient method we should choose PER as it converges the fastest.
 
 With acrobot, all replay types converge to similar performances, but PER converges the fastest. Since all methods also have a similar variance, this time around PER is probably the best bet. 
 
@@ -176,12 +176,14 @@ Furthermore, we could not see a negative effect of the buffer size when only con
 
 ![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
-From this we see that a too large or small buffer size can indeed affect the performance considerably.
+We can see that for each type of experience replay a buffer size of 1000 performs the best and the higher the buffer size gets, the worse it performs. A buffer size of 100 being the exception, this performed so badly it does not show up in our figures.
+
+The reason for this is that with a higher buffer size, older transitions are used, transitions which were sampled from an older and different policy. This, in combination with the fact that Deep Q Networks make no use of importance sampling, could introduce a bias in the network, which would explain the decrease in performance. The abysmal performance of buffer size 100 is due to the fact that the network is overfitting on the most recent transitions.
 
 ## Conclusion
 
-In conclusion, the environments we choose do not seem to be very sensitive to these different types of experience replays. On average ER seems to be sufficient to solve these problems and implementing more sophisticated methods do not seem worth it. This is not completely unsuprising as these PER and HER were specifically developed with more complex and different problems in mind. For example, HER did not perform well on our chosen tasks, but its benefits are mostly shown on multi-goal setting which we did not test in this blogpost. 
+In conclusion, the environments we chose do not seem to be very sensitive to these different types of experience replays. On average ER seems to be sufficient to solve these problems, and implementing more sophisticated methods do not seem worth it. This is not completely unsuprising as PER and HER were specifically developed with more complex and different problems in mind. For example, HER did not perform well on our chosen tasks, but its benefits in the original paper are mostly shown on multi-goal setting which we did not test in this blogpost. 
 
-Furthermore, we saw that a too small or too big buffer size has indeed a negative impact on the perfomance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Since we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project, but it would also be interesting for further research. 
+Furthermore, we saw that a too small or too big buffer size has indeed a negative impact on the perfomance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Additionally, we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project. This would also be interesting for further research. 
 
 
