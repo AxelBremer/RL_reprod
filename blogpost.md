@@ -4,7 +4,7 @@ In this blogpost we investigate the effect of 3 different forms of experience re
 ## Deep Q Networks and Experience Replay?
 
 Q-learning has shown its usefulness on a lot of different tasks, but how does this method scale to more complex issues, like real-world problems? The number of states and actions can grow exponentially, which makes it infeasible to store Q values for all possible combinations.  
-The RL community has found a solution to this in Deep Q Networks (DQN), where Q-learning is infused with Deep Learning. This is a ‘simple’ idea were we replace the Q Learning’s table with a neural network that tries to approximate Q Values instead. 
+The reinforcement learning (RL) community has found a solution to this in Deep Q Networks (DQN), where Q-learning is infused with Deep Learning. This is a ‘simple’ idea were we replace the Q Learning’s table with a neural network that tries to approximate Q Values instead. 
 One problem that we face during training DQN's however, is that in RL, the agent learns from experiences. It uses each experience or sample transition, e.g. (state, action, reward, new state), that it has to update its internal beliefs. However, this means that the sequential data we sample from our agent will be temporal. So when we feed it to our network, the sequential nature of the data will cause it to have a strong temporal correlation. Neural networks (NNs) were not made with this kind of data in mind. There are two main reasons for this:
 
 1. NN's are based on Stochastic Gradient Descent methods which are based on the assumption that the data is i.i.d, identically and independently distributed. Since each experience is based on previous experiences, this assumption does not hold.
@@ -46,10 +46,10 @@ As mentioned earlier, these different forms of experience replay will have a dif
 
 1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
 In the cliffworld environment the agent has to move from the starting state (S) to the goals state (G), it is a classic RL example.
-We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example.
+We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example. It has a two dimensional discrete state space.
 ![Gridworld environment](plots/cliffworld.png)
 2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
-Acrobot stept the difficulty up from the cliffworld example. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment.
+Acrobot stept the difficulty up from the cliffworld example. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment, it has a six dimensional continuous state space. 
 
 1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
