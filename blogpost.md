@@ -49,7 +49,7 @@ In the cliffworld environment the agent has to move from the starting state (S) 
 We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example.
 ![Gridworld environment](plots/cliffworld.png)
 2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
-Acrobot stept the difficulty up from the cliffworld example. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more competitive environment.
+Acrobot stept the difficulty up from the cliffworld example. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment.
 
 1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
