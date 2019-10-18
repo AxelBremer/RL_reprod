@@ -114,6 +114,7 @@ def episode_best_move(config, env, input_shape, output_dim, model):
         st = env.reset()
 
         if isinstance(st, tuple):
+            print('joe')
             state = np.zeros(shape=input_shape)
             state[st] = 1
             st = state.reshape(-1, 1)
@@ -136,10 +137,6 @@ def episode_best_move(config, env, input_shape, output_dim, model):
                 st1 = state.reshape(-1, 1)
 
             st = st1
-
-            # The Gridworld environment doesn't break automatically...
-            if config.environment == 'G' and ct == 200:
-                break
             ct += 1
         env.close()
         print('ct',ct,'r',r)
@@ -200,6 +197,9 @@ def main(config):
     episode_losses = []
     episode_rewards = []
     for i in _tqdm(range(config.num_episodes)):
+        if i == 149:
+            env = gym.wrappers.Monitor(env, './video/',video_callable=lambda episode_id: True,force = True)
+            
         st = env.reset()
 
         if isinstance(st, tuple):
@@ -215,6 +215,7 @@ def main(config):
         done = False
         
         while not done:
+            
             ct += 1
             global_steps += 1
             
@@ -278,7 +279,7 @@ def main(config):
     with open(path + '/history.json', 'w') as f:
         json.dump(d, f, indent=2)
 
-    episode_best_move(config=config, env=env, input_shape=input_shape, output_dim=output_dim, model=model)
+    # episode_best_move(config=config, env=env, input_shape=input_shape, output_dim=output_dim, model=model)
     
     return episode_durations, episode_losses, episode_rewards
 
