@@ -43,20 +43,22 @@ As a result, HER can also be effectively used in multi-goal settings. *So how do
 
 As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blog post we will focus on three types of deterministic environments with different characteristics:
 
-1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
+- [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
 In the cliffworld environment the agent has to move from the starting state (S) to the goal state (G), it is a classic RL example.
 We would like to test the performance of the different experience replays, across multiple difficulty levels. We chose this environment as an example of a relatively simple environment, although interesting, compared to the others. It has a two-dimensional discrete state space.
 ![Gridworld environment](plots/cliffworld.png)
-2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
+
+- [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
 Acrobot steps up the difficulty from the cliffworld. The agent has to swing any part of the arm above the line. Here we clearly see that it is a more challenging environment, evident by the fact that it has a six dimensional continuous state space. 
 
-1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
+- [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
     This environment requires the agent to balance a pole on a cart, hence the name. It has to do so for as long as possible. It has a 4-dimensional continuous input, of which 2 are of infinite magnitude, and 2 discrete actions, push left and push right.
    <!-- ![Cartpole environment](gifs/cartpole_prio.gif) -->
    <img src="gifs/cartpole_prio.gif" alt="cartpole" title="Cartpole environment" width="300"
    style="margin-right: 10px;" />
-2. [MountainCar-v0](https://gym.openai.com/envs/MountainCar-v0/)
+
+- [MountainCar-v0](https://gym.openai.com/envs/MountainCar-v0/)
 
     In this environment the agent needs to get the cart to the top of the mountain as fast as possible. It does not however have enough momentum to just drive up the mountain. It needs to drive left and right a few times to gain momentum. This environment is tricky because the agent only gets a reward for reaching the top and not while trying to gain momentum.
    <!-- ![Mountaincar environment](gifs/mountaincar_her.gif "Mountain car environment") -->
@@ -95,7 +97,9 @@ class QNetwork(nn.Module):
         return out
 ```
 
-For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a grid search over $\alpha=[0.0001, 0.0005, 0.001]$ and $\gamma=[0.7, 0.75, 0.8, 0.99]$ for each environment. Since the tasks we train on are very different, we can not just use the hyperparameter values that perform well on one environment and expect it to generalize well to the others. For the first three games it is sufficient to train the agent for 300 episodes, but through experimentation we found that MountainCar needs 1000 episodes to converge. 
+For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a grid search over $\alpha=[0.0001, 0.0005, 0.001]$ and $\gamma=[0.7, 0.75, 0.8, 0.99]$ for each environment. Since the tasks we train on are very different, we can not just use the hyperparameter values that perform well on one environment and expect it to generalize well to the others. For the first three games it is sufficient to train the agent for 300 episodes, but through experimentation we found that MountainCar needs 1000 episodes to converge.
+
+<center>
 
 |              | $\alpha$   | $\gamma$   |
 |--------------|------------|------------|
@@ -103,6 +107,8 @@ For the learning rate $\alpha$ and discount factor $\gamma$ we first perform a g
 | Acrobot      |  0.001    	|    0.99    |
 | Cartpole     |  0.001    	|    0.8     |
 | Mountain Car |  0.001    	|    0.99    |
+
+</center>
 
 Thus, we use the same model with different hyperparameter values for each environment, but the model remains constant for each of the ER methods. Since we are interested in the effect of the ER methods in each environment, this is a fair comparison. 
 
