@@ -3,16 +3,17 @@ import argparse
 from types import SimpleNamespace
 
 num_of_runs = 5
-# buffer_size = [3000, 10000, 30000]
-buffer_size = [100000]
-# replay_types = ['S', 'H', 'P']
-replay_types = ['P']
-# buffer_size = [
-#         3000,
-#         10000,
-#         30000
-# ]
 
+# experiment parameters
+# buffer_size = [3000, 10000, 30000]
+buffer_size = [100, 1000, 100000]
+replay_types = ['S', 'H', 'P']
+
+# grid search parameters
+dfs = [0.99, 0.8, 0.75, 0.7]
+lrs = [0.001, 0.0005, 0.0001]
+
+# create a new config for each experiment run
 def create_config(run_config, bs, rt):
     single_run_config = SimpleNamespace(**vars(run_config))
     setattr(single_run_config, 'replay_capacity', bs)
@@ -20,6 +21,7 @@ def create_config(run_config, bs, rt):
     setattr(single_run_config, 'name', f'{run_config.name_prefix}_{rt}_{bs}')
     return single_run_config
 
+# create a new config for each grid search run
 def create_config_gs(run_config, lr, df):
     single_run_config = SimpleNamespace(**vars(run_config))
     setattr(single_run_config, 'learning_rate', lr)
@@ -27,7 +29,8 @@ def create_config_gs(run_config, lr, df):
     setattr(single_run_config, 'name', f'lr{str(lr).split(".")[1]}_df{str(df).split(".")[1]}')
     return single_run_config
 
-def main(run_config):
+# run the experiment with all replay types and buffer sizes
+def run_experiment(run_config):
     for rt in replay_types:
         for bs in buffer_size:
             for i in range(num_of_runs):
@@ -35,7 +38,8 @@ def main(run_config):
                 print(f'Starting trainin on: {train_config.name}')
                 train.main(train_config)
 
-def main2(run_config):
+# run the grid search for all discount factors and learning rates
+def run_grid_search(run_config):
     for lr in lrs:
         for df in dfs:
             for i in range(num_of_runs):
@@ -63,4 +67,4 @@ if __name__ == "__main__":
 
     run_config = parser.parse_args()
 
-    main(run_config)
+    run_experiment(run_config)
