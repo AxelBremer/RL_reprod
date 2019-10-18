@@ -76,7 +76,7 @@ As mentioned earlier, these different forms of experience replay will have a dif
 
 ## What will we investigate?
 
-We will investigate the behaviour of the introduced experience replay methods on the environments we just proposed. This is interesting as the method of experience replay and the type of task it is used on, may heavily influence the performance of the model. For this we form the following hypothesis: we expect PER to perform better on the more complex environment and HER to perform better on the mountain car environment, which has a sparse reward. For the simple environment we think that ER will be sufficient and that using PER or HER might not provide a competitive advantage.
+We will investigate the behaviour of the introduced experience replay methods on the environments we just proposed. This is interesting as the method of experience replay and the type of task it is used on, may heavily influence the performance of the model. For this we form the following hypothesis: we expect PER to perform better on the more complex environment and HER to perform better on the mountain car environment, because we think each position is better for the car to be in than where it started. For the simple environment we think that ER will be sufficient and that using PER or HER might not provide a competitive advantage.
 
 Also, as you may recall, we explained earlier that experience replay should have a positive influence on the training stability and the sample efficiency. Thus, we will compare the influence of each method on each environment w.r.t. the number of training steps, samples needed for convergence, and the cumulative reward.
 
@@ -178,11 +178,11 @@ In the cliff environment we can see that, in agreement with our hypothesis, the 
 
 In cartpole we observe high variance for all replay types and it's hard to say which method should be preferred, however, PER seems to learn the fastest albeit with the highest variance. Since after 250 episodes the performance of all converge to approximately the same results, which method should be preferred depends on the objective that we are trying to optimize for. If we want a more stable training process, ER seems to be best, but if we want the most sample efficient method we should choose PER as it converges the fastest.
 
-With acrobot, all replay types converge to similar performances, but PER converges the fastest. Since all methods also have a similar variance, this time around PER is probably the best bet. 
+With acrobot, all replay types converge to similar performances, but PER converges the fastest. Since all methods also have a similar variance, this time around PER is probably the best bet. Which is what we did expect
 
-Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance.
+Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance. Her does perform a bit worse than the two other types. This goes against our hypothesis. Adding the intermediary goals does not seem to work as we expected.
 
-Furthermore, we could not see a negative effect of the buffer size when only considering buffer sizes of 3000, 10.000 and 30.000. Therefore, we performed an additional experiment where we tested all the sizes described in the paper. Due to time constraints, we only tested this on the GirdWorld environment and the results are shown below. 
+And now for the different buffer sizes on the Cliff Gridworld.
 
 ![plot2](./media/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
@@ -192,7 +192,7 @@ The reason for this is that with a higher buffer size, older transitions are use
 
 ## Conclusion
 
-In conclusion, the environments we chose, do not seem to be very sensitive to these different types of experience replays. On average ER seems to be sufficient to solve these problems, and implementing more sophisticated methods do not seem worth it. This is not completely unsurprising as PER and HER were specifically developed with more complex and different problems in mind. For example, HER did not perform well on our chosen tasks, but its benefits in the original paper are mostly shown on multi-goal setting which we did not test in this blog post. 
+In conclusion, the environments we chose, do not seem to be very sensitive to these different types of experience replays. On average ER seems to be sufficient to solve these problems, and implementing more sophisticated methods do not seem worth it. This is not completely unsurprising as PER and HER were specifically developed with more complex and different problems in mind. For example, HER did not perform well on our chosen tasks, but its benefits in the original paper are mostly shown on multi-goal setting which we did not test in this blog post.
 
 Furthermore, we saw that a too small or too big buffer size indeed has a negative impact on the performance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Additionally, we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project. This would also be interesting for further research. 
 
