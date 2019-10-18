@@ -107,37 +107,45 @@ def train_step(model, memory, optimizer, batch_size, discount_factor, replay_typ
     return loss.item()  # Returns a Python scalar, and releases history (similar to .detach())
 
 def episode_best_move(config, env, input_shape, output_dim, model):
-    env = gym.wrappers.Monitor(env, './video/',video_callable=lambda episode_id: True,force = True)
+    do = True
+    while do:
+        print('doing episode with best moves')
+        env = gym.wrappers.Monitor(env, './video/',video_callable=lambda episode_id: True,force = True)
+        st = env.reset()
 
-    st = env.reset()
-
-    if isinstance(st, tuple):
-        state = np.zeros(shape=input_shape)
-        state[st] = 1
-        st = state.reshape(-1, 1)
-
-    loss = 0
-    reward = 0
-    done = False
-    
-    while not done:
-        a = select_action(model, st, 0, device, output_dim)
-
-        st1, r, done, _ = env.step(a)
-
-        reward += r
-
-        if isinstance(st1, tuple):
+        if isinstance(st, tuple):
             state = np.zeros(shape=input_shape)
-            state[st1] = 1
-            st1 = state.reshape(-1, 1)
+            state[st] = 1
+            st = state.reshape(-1, 1)
 
-        st = st1
+        loss = 0
+        ct = 0
+        reward = 0
+        done = False
+        
+        while not done:
+            a = select_action(model, st, 0, device, output_dim)
 
-        # The Gridworld environment doesn't break automatically...
-        if config.environment == 'G' and ct == 200:
-            break
-    env.close()
+            st1, r, done, _ = env.step(a)
+
+            reward += r
+
+            if isinstance(st1, tuple):
+                state = np.zeros(shape=input_shape)
+                state[st1] = 1
+                st1 = state.reshape(-1, 1)
+
+            st = st1
+
+            # The Gridworld environment doesn't break automatically...
+            if config.environment == 'G' and ct == 200:
+                break
+            ct += 1
+        env.reset()
+        env.close()
+        print('ct',ct,'r',r)
+        if ct < 199:
+            do = False
 
 
 def main(config):
