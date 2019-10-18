@@ -4,7 +4,7 @@ In this blogpost we investigate the effect of 3 different forms of experience re
 ## Deep Q Networks and Experience Replay?
 
 Q-learning has shown its usefulness on a lot of different tasks, but how does this method scale to more complex issues, like real-world problems? The number of states and actions can grow exponentially, which makes it infeasible to store Q values for all possible combinations.  
-The RL community has found a solution to this in Deep Q Networks (DQN), where Q-learning is infused with Deep Learning. This is a ‘simple’ idea were we replace the Q Learning’s table with a neural network that tries to approximate Q Values instead. 
+The reinforcement learning (RL) community has found a solution to this in Deep Q Networks (DQN), where Q-learning is infused with Deep Learning. This is a ‘simple’ idea were we replace the Q Learning’s table with a neural network that tries to approximate Q Values instead. 
 One problem that we face during training DQN's however, is that in RL, the agent learns from experiences. It uses each experience or sample transition, e.g. (state, action, reward, new state), that it has to update its internal beliefs. However, this means that the sequential data we sample from our agent will be temporal. So when we feed it to our network, the sequential nature of the data will cause it to have a strong temporal correlation. Neural networks (NNs) were not made with this kind of data in mind. There are two main reasons for this:
 
 1. NN's are based on Stochastic Gradient Descent methods which are based on the assumption that the data is i.i.d, identically and independently distributed. Since each experience is based on previous experiences, this assumption does not hold.
@@ -45,17 +45,24 @@ As a result, HER can also be effectively used in multi-goal settings. *So how do
 As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blogpost we will focus on three types of deterministic environments with different characteristics:
 
 1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
-In the cliffworld environment the agent has to move from the starting state (S) to the goals state (G), it is a classic reinforcement example.
-We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example.
+In the cliffworld environment the agent has to move from the starting state (S) to the goals state (G), it is a classic RL example.
+We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example. It has a two dimensional discrete state space.
+![Gridworld environment](plots/cliffworld.png)
+2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
+Acrobot stept the difficulty up from the cliffworld example. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment, it has a six dimensional continuous state space. 
 
-   ![Gridworld environment](plots/cliffworld.png)
-1. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
-2. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
+1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
-   ![Cartpole environment](gifs/cartpole_prio.gif)
-3. An environment with binary and sparse rewards: [MountainCarContinuous-v0](https://gym.openai.com/envs/MountainCarContinuous-v0/)
+    This environment requires the agent to balance a pole on a cart, hence the name. It has to do so for as long as possible. It has a 4 dimensional continuous input, of which 2 are of infinite magnitude, and 2 discrete actions, push left and push right.
+   <!-- ![Cartpole environment](gifs/cartpole_prio.gif) -->
+   <img src="gifs/cartpole_prio.gif" alt="cartpole" title="Cartpole environment" width="300"
+   style="margin-right: 10px;" />
+4. [MountainCar-v0](https://gym.openai.com/envs/MountainCar-v0/)
 
-   ![Mountaincar environment](gifs/mountaincar_her.gif)
+    In this environment the agent needs to get the cart to the top of the mountain as fast as possible. It does not however have enough momentum to just drive up the mountain. It needs to drive left and right a few times to gain momentum. This environment is tricky because the agent only gets a reward for reaching the top and not while trying to gain momentum.
+   <!-- ![Mountaincar environment](gifs/mountaincar_her.gif "Mountain car environment") -->
+   <img src="gifs/mountaincar_her.gif" alt="Kitten" title="A cute kitten" width="300"
+   style="margin-right: 10px;" />
 
 ## What will we investigate?
 
@@ -104,7 +111,6 @@ Thus, we use the same model with different hyperparameter values for each enviro
 
 The implementation of PER is based on the code from [this](https://github.com/rlcode/per/blob/master/prioritized_memory.py) GitHub. The hyperparameter $\alpha$ controls the level of prioritization that is applied, when $\alpha \rightarrow 0$ there is no prioritization, whereas, when $\alpha \rightarrow 1$ there is full prioritization. We don't want to apply full prioritization as it would cause our model to overfit. Therefore, we assign $\alpha$ a value of 0.6 which was found in the [original PER paper](https://arxiv.org/pdf/1511.05952.pdf) by using a coarse grid-search.
 
-
 ```python
 class PrioritizedER():
 
@@ -125,6 +131,7 @@ class PrioritizedER():
         idxs = []
         segment = self.tree.total() / batch_size
         priorities = []
+        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
 
         for i in range(batch_size):
             a = segment * i
@@ -148,10 +155,9 @@ Furthermore, it would be costly to store the transitions in a list, as we would 
 
 The implementation of Hindsight Experience Replay is based on [this](https://github.com/orrivlin/Hindsight-Experience-Replay---Bit-Flipping) and [this](https://github.com/openai/baselines/tree/master/baselines/her) implementation. 
 
-Since we are dealing with environments that have only one goal, our implementation is quite simple, as we do not have to change the goal in any non-terminal states, instead we only change the achieved value in the end state of an episode. 
+Since we are dealing with environments that have only one goal, our implementation is quite simple, as we do not have to change the goal in any non-terminal states. Instead we only change the achieved value in the end state of an episode. 
+One parameter called ‘replay $k$’ is introduced which sets the ratio of HER replays versus normal replays in the buffer. We set ‘replay k’ to 4 as that is what is also used by OpenAI in their experiments. Concretely this means that every episode is inserted into the buffer normally, and additionally the same episode is inserted $k$ times (the hindsight replays), with a altered goal with reward 0.
 
-**HER code snippet?**
-One parameter called ‘replay k’ is introduced which sets the ratio of HER replays versus normal replays in the buffer. We set ‘replay k’ to 4 as that is what is also used by OpenAI in their experiments, especially since we are only changing the value of only the last state of an episode.
 
 ## Results
 
@@ -168,6 +174,7 @@ With acrobot, all replay types converge to similar performances, but PER converg
 Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance.
 
 Furthermore, we could not see a negative effect of the buffer size when only considering buffer sizes of 3000, 10.000 and 30.000. Therefore, we performed an additional experiment were we tested all the sizes described in the paper. Due to time constraints, we only tested this on the GirdWorld environment and the results are shown below. 
+
 
 ![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
