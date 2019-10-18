@@ -53,10 +53,16 @@ Acrobot stept the difficulty up from the cliffworld example. The agent has to sw
 
 1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
-   ![Cartpole environment](gifs/cartpole_prio.gif)
-2. An environment with binary and sparse rewards: [MountainCarContinuous-v0](https://gym.openai.com/envs/MountainCarContinuous-v0/)
+    This environment requires the agent to balance a pole on a cart, hence the name. It has to do so for as long as possible. It has a 4 dimensional continuous input, of which 2 are of infinite magnitude, and 2 discrete actions, push left and push right.
+   <!-- ![Cartpole environment](gifs/cartpole_prio.gif) -->
+   <img src="gifs/cartpole_prio.gif" alt="cartpole" title="Cartpole environment" width="300"
+   style="margin-right: 10px;" />
+4. [MountainCar-v0](https://gym.openai.com/envs/MountainCar-v0/)
 
-   ![Mountaincar environment](gifs/mountaincar_her.gif)
+    In this environment the agent needs to get the cart to the top of the mountain as fast as possible. It does not however have enough momentum to just drive up the mountain. It needs to drive left and right a few times to gain momentum. This environment is tricky because the agent only gets a reward for reaching the top and not while trying to gain momentum.
+   <!-- ![Mountaincar environment](gifs/mountaincar_her.gif "Mountain car environment") -->
+   <img src="gifs/mountaincar_her.gif" alt="Kitten" title="A cute kitten" width="300"
+   style="margin-right: 10px;" />
 
 ## What will we investigate?
 
@@ -104,7 +110,6 @@ Thus, we use the same model with different hyperparameter values for each enviro
 ### Prioritized Experience Replay
 
 The implementation of PER is based on the code from [this](https://github.com/rlcode/per/blob/master/prioritized_memory.py) GitHub. The hyperparameter $\alpha$ controls the level of prioritization that is applied, when $\alpha \rightarrow 0$ there is no prioritization, whereas, when $\alpha \rightarrow 1$ there is full prioritization. We don't want to apply full prioritization as it would cause our model to overfit. Therefore, we assign $\alpha$ a value of 0.6 which was found in the [original PER paper](https://arxiv.org/pdf/1511.05952.pdf) by using a coarse grid-search.
-
 
 ```python
 class PrioritizedER():
