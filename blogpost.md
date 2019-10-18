@@ -43,13 +43,15 @@ HER can also be effectively used in multi-goal settings. As the agent can ‘hal
 As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blogpost we will focus on three types of deterministic environments with different characteristics:
 
 1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
+In the cliffworld environment the agent has to move from the starting state (S) to the goals state (G), it is a classic reinforcement example.
+We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example.
 
    ![Gridworld environment](plots/cliffworld.png)
-2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
-3. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
+1. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
+2. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
    ![Cartpole environment](gifs/cartpole_prio.gif)
-4. An environment with binary and sparse rewards: [MountainCarContinuous-v0](https://gym.openai.com/envs/MountainCarContinuous-v0/)
+3. An environment with binary and sparse rewards: [MountainCarContinuous-v0](https://gym.openai.com/envs/MountainCarContinuous-v0/)
 
    ![Mountaincar environment](gifs/mountaincar_her.gif)
 
