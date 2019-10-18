@@ -12,8 +12,6 @@ One problem that we face during training DQN's however, is that in RL, the agent
 
 These problems can both have a negative impact on the stability of the training process. Luckily, a solution to both problems is found in experience replay. The idea is simple, we only have to store the agent’s experiences in a memory buffer. This way, we can sample from this buffer during training which both breaks the temporal correlation between data samples, and at the same time allows the model to re-train on previous experiences.
 
-![eot](https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/live-die-repeat-title.jpg, "live die repeat")
-
 Storing previous experiences and training on them multiple times also has an additional benefit as we can now optimally exploit every single sampled transition we have by controlling how and how often it is "remembered". This means that we can learn more with the same amount of samples i.e. it is more sample efficient. This is especially beneficial in cases where gaining real-world experience is expensive. Thus, experience replay stabilizes the training process and increases the sample efficiency.
 
 ## Different Types of Experience Replay and Environments
@@ -29,14 +27,18 @@ This method is developed to really exploit samples that display rare or surprisi
 $$\delta_{i} = r_{t} + \lambda max_{a \in A} Q_{\theta}(s_{t+1}, a) - Q_{\theta}(s_{t}, a_{t})$$
 Now, to store this information during training, we can simply extend the sample transitions we want to store in our memory buffer with this priority proxy: *(state, action, reward, new state, $|\delta_i|$)*. When the memory buffer reaches its capacity limit, we simply remove the oldest samples. 
 So now we know which samples to store and how to store them, but we still need to find a way to actually use them as intended. This leads us to the second aspect: *How do we sample from the memory buffer?* We will have to construct a probability distribution where the samples with higher priorities are more likely to be picked for repetition. To get the right priorities for each sample we use the absolute TD error plus some value $\epsilon$ to ensure that each sample in the buffer will be picked with a non-zero probability. We then simply construct a probability distribution as follows:
-$$P(i) = \frac{|\delta_{i}|^{\alpha}}{\sum_k |\delta_{i}|^{\alpha}}$$
+$P(i) = \frac{|\delta_{i}|^{\alpha}}{\sum_k |\delta_{i}|^{\alpha}}$
 Now to pick the more useful samples with a higher priority, we just have to sample from this distribution!
 
 
 ### Hindsight Experience Replay (HER)
 Introduced by Openai in [this paper](http://papers.nips.cc/paper/7090-hindsight-experience-replay.pdf), this type of experience replay allows our agent to learn from failed experiences. The intuition behind this is that, even when the agent fails, this doesn’t make the experience completely invaluable, the behavior could still be useful in another context. So we don’t just want to dismiss these experiences altogether! HER solves this problem by adapting the sampled transitions that it stores in memory such that it treats failed experiences as successes given the context in which it is used. 
-
-HER can also be effectively used in multi-goal settings. As the agent can ‘hallucinate’ reaching multiple goals at the end of an episode, making it so that the agent can maximally learn from this episode. *TODO*: Formally this changes the transitions structure like this:
+*So how do we store and adapt samples?* Since we are now interested in whether experienced episodes were successful or not, we need to store trajectories into our memory buffer with their goal state G: 
+${(S_0, G, a_0, r_0, S_1), .. , (S_n, G, a_n, r_n, S')}$
+Now the idea in HER is to pretend for failed experiences that the end state S' was actually the goal G all along. To do this, we just substitute G with S' and store this imagined trajectory into memory as well: 
+${(S_0, S', a_0, r_0, S_1), .. , (S_n, S', a_n, r_n, S')}$
+In this alternative reality the agent has reached the goal and got a positive reward for doing so. By storing both the real and the imagined trajectory into memory we can ensure that the agent always gets some positive reward to learn from. As the agent can imagine reaching multiple goals at the end of an episode, the agent can maximally learn from this episode.  
+As a result, HER can also be effectively used in multi-goal settings. *So how do we sample from this memory buffer?* This is simple, we just take a random batch of experiences like in ER. 
 
 ### Environments
 
