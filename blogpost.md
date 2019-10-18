@@ -45,11 +45,11 @@ As a result, HER can also be effectively used in multi-goal settings. *So how do
 As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blogpost we will focus on three types of deterministic environments with different characteristics:
 
 1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
-In the cliffworld environment the agent has to move from the starting state (S) to the goals state (G), it is a classic RL example.
-We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example. It has a two dimensional discrete state space.
+In the cliffworld environment the agent has to move from the starting state (S) to the goal state (G), it is a classic RL example.
+We would like to test the performance of the different experience replays, across multiple difficulty levels. We chose this environment as an example of a relatively simple environment, although interesting, compared to the others. It has a two dimensional discrete state space.
 ![Gridworld environment](plots/cliffworld.png)
 2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
-Acrobot stept the difficulty up from the cliffworld example. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment, it has a six dimensional continuous state space. 
+Acrobot steps up the difficulty from the cliffworld. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment, evident by the fact that it has a six dimensional continuous state space. 
 
 1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
@@ -66,7 +66,7 @@ Acrobot stept the difficulty up from the cliffworld example. The agent has to sw
 
 ## What will we investigate?
 
-We will investigate the behaviour of the introduced experience replay methods on the environments we just proposed. As you have hopefully understood by now, this is interesting as the method of experience replay and the type of task it is used on, may heavily influence the performance of the model. For this we form the following hypothesis: we expect PER to perform better on the more complex environment and HER to perform better on the environment with binary and sparse rewards. For the simple environment we think that ER will be sufficient and that using PER or HER might not provide a competitive advantage.
+We will investigate the behaviour of the introduced experience replay methods on the environments we just proposed. As you understand by now, this is interesting as the method of experience replay and the type of task it is used on, may heavily influence the performance of the model. For this we form the following hypothesis: we expect PER to perform better on the more complex environment and HER to perform better on the environment with binary and sparse rewards. For the simple environment we think that ER will be sufficient and that using PER or HER might not provide a competitive advantage.
 
 Also, if you recall, we explained earlier that experience replay should have a positive influence on the training stability and the sample efficiency. Thus, we will compare the influence of each method on each environment w.r.t. the number of training steps, samples needed for convergence, and the cumulative reward.
 
