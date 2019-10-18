@@ -141,10 +141,9 @@ def episode_best_move(config, env, input_shape, output_dim, model):
             if config.environment == 'G' and ct == 200:
                 break
             ct += 1
-        env.reset()
         env.close()
         print('ct',ct,'r',r)
-        if ct < 199:
+        if ct < 400:
             do = False
 
 
