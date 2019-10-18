@@ -12,8 +12,6 @@ One problem that we face during training DQN's however, is that in RL, the agent
 
 These problems can both have a negative impact on the stability of the training process. Luckily, a solution to both problems is found in experience replay. The idea is simple, we only have to store the agent’s experiences in a memory buffer. This way, we can sample from this buffer during training which both breaks the temporal correlation between data samples, and at the same time allows the model to re-train on previous experiences.
 
-![eot](https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/live-die-repeat-title.jpg, "live die repeat")
-
 Storing previous experiences and training on them multiple times also has an additional benefit as we can now optimally exploit every single sampled transition we have by controlling how and how often it is "remembered". This means that we can learn more with the same amount of samples i.e. it is more sample efficient. This is especially beneficial in cases where gaining real-world experience is expensive. Thus, experience replay stabilizes the training process and increases the sample efficiency.
 
 ## Different Types of Experience Replay and Environments
@@ -29,24 +27,31 @@ This method is developed to really exploit samples that display rare or surprisi
 $$\delta_{i} = r_{t} + \lambda max_{a \in A} Q_{\theta}(s_{t+1}, a) - Q_{\theta}(s_{t}, a_{t})$$
 Now, to store this information during training, we can simply extend the sample transitions we want to store in our memory buffer with this priority proxy: *(state, action, reward, new state, $|\delta_i|$)*. When the memory buffer reaches its capacity limit, we simply remove the oldest samples. 
 So now we know which samples to store and how to store them, but we still need to find a way to actually use them as intended. This leads us to the second aspect: *How do we sample from the memory buffer?* We will have to construct a probability distribution where the samples with higher priorities are more likely to be picked for repetition. To get the right priorities for each sample we use the absolute TD error plus some value $\epsilon$ to ensure that each sample in the buffer will be picked with a non-zero probability. We then simply construct a probability distribution as follows:
-$$P(i) = \frac{|\delta_{i}|^{\alpha}}{\sum_k |\delta_{i}|^{\alpha}}$$
+$P(i) = \frac{|\delta_{i}|^{\alpha}}{\sum_k |\delta_{i}|^{\alpha}}$
 Now to pick the more useful samples with a higher priority, we just have to sample from this distribution!
 
 
 ### Hindsight Experience Replay (HER)
 Introduced by Openai in [this paper](http://papers.nips.cc/paper/7090-hindsight-experience-replay.pdf), this type of experience replay allows our agent to learn from failed experiences. The intuition behind this is that, even when the agent fails, this doesn’t make the experience completely invaluable, the behavior could still be useful in another context. So we don’t just want to dismiss these experiences altogether! HER solves this problem by adapting the sampled transitions that it stores in memory such that it treats failed experiences as successes given the context in which it is used. 
-
-HER can also be effectively used in multi-goal settings. As the agent can ‘hallucinate’ reaching multiple goals at the end of an episode, making it so that the agent can maximally learn from this episode. *TODO*: Formally this changes the transitions structure like this:
+*So how do we store and adapt samples?* Since we are now interested in whether experienced episodes were successful or not, we need to store trajectories into our memory buffer with their goal state G: 
+${(S_0, G, a_0, r_0, S_1), .. , (S_n, G, a_n, r_n, S')}$
+Now the idea in HER is to pretend for failed experiences that the end state S' was actually the goal G all along. To do this, we just substitute G with S' and store this imagined trajectory into memory as well: 
+${(S_0, S', a_0, r_0, S_1), .. , (S_n, S', a_n, r_n, S')}$
+In this alternative reality the agent has reached the goal and got a positive reward for doing so. By storing both the real and the imagined trajectory into memory we can ensure that the agent always gets some positive reward to learn from. As the agent can imagine reaching multiple goals at the end of an episode, the agent can maximally learn from this episode.  
+As a result, HER can also be effectively used in multi-goal settings. *So how do we sample from this memory buffer?* This is simple, we just take a random batch of experiences like in ER. 
 
 ### Environments
 
 As mentioned earlier, these different forms of experience replay will have a different impact on different types of environments. In this blogpost we will focus on three types of deterministic environments with different characteristics:
 
 1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
-
-   ![Gridworld environment](plots/cliffworld.png)
+In the cliffworld environment the agent has to move from the starting state (S) to the goals state (G), it is a classic RL example.
+We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example.
+![Gridworld environment](plots/cliffworld.png)
 2. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
-3. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
+Acrobot stept the difficulty up from the cliffworld example. The agent has to swing the end of the arm above the line. Here we clearly see that it is a more challenging environment.
+
+1. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
     This environment requires the agent to balance a pole on a cart, hence the name. It has to do so for as long as possible. It has a 4 dimensional continuous input, of which 2 are of infinite magnitude, and 2 discrete actions, push left and push right.
    <!-- ![Cartpole environment](gifs/cartpole_prio.gif) -->
@@ -126,6 +131,7 @@ class PrioritizedER():
         idxs = []
         segment = self.tree.total() / batch_size
         priorities = []
+        self.beta = np.min([1., self.beta + self.beta_increment_per_sampling])
 
         for i in range(batch_size):
             a = segment * i
@@ -149,18 +155,16 @@ Furthermore, it would be costly to store the transitions in a list, as we would 
 
 The implementation of Hindsight Experience Replay is based on [this](https://github.com/orrivlin/Hindsight-Experience-Replay---Bit-Flipping) and [this](https://github.com/openai/baselines/tree/master/baselines/her) implementation. 
 
-Since we are dealing with environments that have only one goal, our implementation is quite simple, as we do not have to change the goal in any non-terminal states, instead we only change the achieved value in the end state of an episode. 
+Since we are dealing with environments that have only one goal, our implementation is quite simple, as we do not have to change the goal in any non-terminal states. Instead we only change the achieved value in the end state of an episode. 
+One parameter called ‘replay $k$’ is introduced which sets the ratio of HER replays versus normal replays in the buffer. We set ‘replay k’ to 4 as that is what is also used by OpenAI in their experiments. Concretely this means that every episode is inserted into the buffer normally, and additionally the same episode is inserted $k$ times (the hindsight replays), with a altered goal with reward 0.
 
-**HER code snippet?**
-One parameter called ‘replay k’ is introduced which sets the ratio of HER replays versus normal replays in the buffer. We set ‘replay k’ to 4 as that is what is also used by OpenAI in their experiments, especially since we are only changing the value of only the last state of an episode.
 
 ## Results
 
 First we'll look at the performance of each replay type for every environment. We'll use the buffer size that performed best on each environment.
 ![plot1](./plots/replay_types.png "Plot of replay types on the environments")
-In the acrobot environment, all replay types reach around the same reward, although PER gets there the quickest. Interestingly in the cliff env, ER outperforms HER and PER significantly.
 
-It is important to show not only returns but demonstrations of the learned policy in action. Without understanding what the evaluation returns indicate, it is possible that misleading results can be reported which in reality only optimize local optima rather than reaching the desired behaviour.
+In the cliff environment, we can see that although PER gets a head start it never achieves any good rewards. Interestingly, ER outperforms HER and PER significantly. In cartpole we observe high variance for all replay types, however PER seems to perform the best. With acrobot, all replay types reach around the same reward, although PER gets there the quickest. Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance.
 
 ![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
