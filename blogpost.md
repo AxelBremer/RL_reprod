@@ -61,7 +61,7 @@ Acrobot steps up the difficulty from the cliffworld. The agent has to swing the 
 
     In this environment the agent needs to get the cart to the top of the mountain as fast as possible. It does not however have enough momentum to just drive up the mountain. It needs to drive left and right a few times to gain momentum. This environment is tricky because the agent only gets a reward for reaching the top and not while trying to gain momentum.
    <!-- ![Mountaincar environment](gifs/mountaincar_her.gif "Mountain car environment") -->
-   <img src="gifs/mountaincar_her.gif" alt="Kitten" title="A cute kitten" width="300"
+   <img src="gifs/mountaincar_her.gif" alt="Mountaincar" title="A trained agent in the mountaincar environment." width="300"
    style="margin-right: 10px;" />
 
 ## What will we investigate?
