@@ -108,7 +108,7 @@ def train_step(model, memory, optimizer, batch_size, discount_factor, replay_typ
 
 def episode_best_move(config, env, input_shape, output_dim, model):
     do = True
-    while do:
+    for i in range(10):
         print('doing episode with best moves')
         env = gym.wrappers.Monitor(env, './video/',video_callable=lambda episode_id: True,force = True)
         st = env.reset()
