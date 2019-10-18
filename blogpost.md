@@ -45,9 +45,9 @@ As mentioned earlier, these different forms of experience replay will have a dif
 1. [CliffGridworld-v0](https://github.com/podondra/gym-gridworlds)
 In the cliffworld environment the agent has to move from the starting state (S) to the goals state (G), it is a classic reinforcement example.
 We would like to test the performance of the different experience replays across multiple dificulty levels. We chose this environment to be the simple example.
-
    ![Gridworld environment](plots/cliffworld.png)
 1. [Acrobot-v1](https://gym.openai.com/envs/Acrobot-v1/)
+
 2. [CartPole-v1](https://gym.openai.com/envs/CartPole-v1/)
 
    ![Cartpole environment](gifs/cartpole_prio.gif)
