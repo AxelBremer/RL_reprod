@@ -158,14 +158,13 @@ The implementation of Hindsight Experience Replay is based on [this](https://git
 Since we are dealing with environments that have only one goal, our implementation is quite simple, as we do not have to change the goal in any non-terminal states. Instead we only change the achieved value in the end state of an episode. 
 One parameter called ‘replay $k$’ is introduced which sets the ratio of HER replays versus normal replays in the buffer. We set ‘replay k’ to 4 as that is what is also used by OpenAI in their experiments. Concretely this means that every episode is inserted into the buffer normally, and additionally the same episode is inserted $k$ times (the hindsight replays), with a altered goal with reward 0.
 
-
 ## Results
 
 First we'll look at the behaviour of each type of experience replay in every environment seperately. The results are shown for the buffer size that performed best on each environment.
-Furthermore, if you recall correctly, using experience replay could positively effec the stability of the training process and the sample efficiency. Thus, will analyze both the variance over the performance and the time it takes for each method to converge. 
+Furthermore, if you recall, using experience replay could positively effect the stability of the training process and the sample efficiency. Thus, we will analyze both the variance over the performance and the time it takes for each method to converge.
 ![plot1](./plots/replay_types.png "Plot of replay types on the environments")
 
-In the cliff environment, we can see that in agreement with our hypothesis, the ER method is sufficient to obtain reasonable performance and HER and PER do not provide any competitive advantage. The behaviour of PER is, however, surprising as it performance considerably worse than ER and HER. 
+In the cliff environment we can see that, in agreement with our hypothesis, the ER method is sufficient to obtain reasonable performance and HER and PER do not provide any competitive advantage. The behaviour of PER is, however, surprising as it performance considerably worse than ER and HER.
 
 In cartpole we observe high variance for all replay types and its hard to say which method should be perferred, however, PER seems to learn the fastest albeit with the highest variance. Since after 250 episodes the performance of all converge to approximately the same results, which method should be perferred depends on the objective that we are trying to optimize for. If we want a more stable traning process, ER seems to be best, but if we want the most sample efficient method we should choose PER as it converges the fastest. 
 
@@ -174,7 +173,6 @@ With acrobot, all replay types converge to similar performances, but PER converg
 Mountain car again exhibits roughly the same performance for each replay type. It seems as though PER can perform slightly better at the cost of high variance.
 
 Furthermore, we could not see a negative effect of the buffer size when only considering buffer sizes of 3000, 10.000 and 30.000. Therefore, we performed an additional experiment were we tested all the sizes described in the paper. Due to time constraints, we only tested this on the GirdWorld environment and the results are shown below. 
-
 
 ![plot2](./plots/buffer_zoomed.png "Plot of buffer size impact on the cliff environment")
 
