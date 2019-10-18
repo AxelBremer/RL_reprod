@@ -72,6 +72,8 @@ As mentioned earlier, these different forms of experience replay will have a dif
    <img src="media/mountaincar_her.gif" alt="Mountaincar" title="A trained agent in the mountaincar environment." width="300"
    align="middle" />
 
+    Each of these gifs are of agents trained using our Deep Q Network.
+
 ## What will we investigate?
 
 We will investigate the behaviour of the introduced experience replay methods on the environments we just proposed. This is interesting as the method of experience replay and the type of task it is used on, may heavily influence the performance of the model. For this we form the following hypothesis: we expect PER to perform better on the more complex environment and HER to perform better on the mountain car environment, which has a sparse reward. For the simple environment we think that ER will be sufficient and that using PER or HER might not provide a competitive advantage.
@@ -194,4 +196,4 @@ In conclusion, the environments we chose, do not seem to be very sensitive to th
 
 Furthermore, we saw that a too small or too big buffer size indeed has a negative impact on the performance. Even so much so that in these environments the buffer size seemed to matter more than the type of ER method that is used. Thus, when using DQN's it is important to also spend some time on optimizing the buffer size you use! Additionally, we observed that during different stages of training different buffer sizes seemed optimal, it would be interesting to see whether dynamically changing the buffer size could be beneficial. In addition, the [paper by Zhang & Sutton](https://arxiv.org/pdf/1712.01275.pdf) also proposes a solution to diminish the negative impact of a suboptimally chosen buffer size. This solution is called combined experience replay (CER), an extension to uniform experience replay. Unfortunately, applying this method was outside the scope of this project. This would also be interesting for further research. 
 
-*Written by Axel Bremer, Rochelle Choenni, Max Filtenborg and Tim de Haan*
+_Written by Axel Bremer, Rochelle Choenni, Max Filtenborg and Tim de Haan_
